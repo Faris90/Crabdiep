@@ -22,13 +22,14 @@ import Bullet from "./Bullet";
 import { PhysicsFlags, StyleFlags } from "../../../Const/Enums";
 import { TankDefinition } from "../../../Const/TankDefinitions";
 import { Entity } from "../../../Native/Entity";
-import { AI, AIState } from "../../AI";
+import { AI, AIState, Inputs } from "../../AI";
 import { BarrelBase } from "../TankBody";
+import AutoTurret from "../AutoTurret";
 
 /**
  * The drone class represents the drone (projectile) entity in diep.
  */
-export default class Hive extends Bullet {
+export default class AutoDrone extends Bullet  implements BarrelBase{
     /** The AI of the drone (for AI mode) */
     public ai: AI;
 
@@ -36,21 +37,80 @@ export default class Hive extends Bullet {
     public static MAX_RESTING_RADIUS = 400 ** 2;
 
     /** Used let the drone go back to the player in time. */
-    private restCycle = true;
-
+    public restCycle = true;
+    public sizeFactor: number;
+    public cameraEntity: Entity;
+    public inputs = new Inputs();
     /** Cached prop of the definition. */
     protected canControlDrones: boolean;
+    public reloadTime = 15;
+    public megaturret: boolean;
 
     public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
         super(barrel, tank, tankDefinition, shootAngle);
 
         const bulletDefinition = barrel.definition.bullet;
+        this.megaturret = typeof this.barrelEntity.definition.megaturret === 'boolean' && this.barrelEntity.definition.megaturret;
 
         this.usePosAngle = true;
-        
+        this.cameraEntity = tank.cameraEntity;
+        if ( this.megaturret){
+            const atuo = new AutoTurret(this, {
+                angle: 0,
+                offset: 0,
+                size: 83,
+                width: 48,
+                delay: 0.01,
+                reload: 3,
+                recoil: 0,
+                isTrapezoid: false,
+                trapezoidDirection: 0,
+                addon: null,
+                bullet: {
+                    type: "bullet",
+                    sizeRatio: 1,
+                    health: 1.15,
+                    damage: 1.2,
+                    speed: 0.9,
+                    scatterRate: 1,
+                    lifeLength: 0.75,
+                    absorbtionFactor: 0.1
+                }
+            });
+                atuo.baseSize *= 1.35
+              //  atuo.positionData.values.angle = shootAngle
+                atuo.ai.viewRange = 1500}else{
+
+                    const atuo = new AutoTurret(this, {
+                        angle: 0,
+                        offset: 0,
+                        size: 65,
+                        width: 35,
+                        delay: 0.01,
+                        reload: 1.2,
+                        recoil: 0,
+                        isTrapezoid: false,
+                        trapezoidDirection: 0,
+                        addon: null,
+                        bullet: {
+                            type: "bullet",
+                            sizeRatio: 1,
+                            health: 1,
+                            damage: 0.45,
+                            speed: 1.2,
+                            scatterRate: 1,
+                            lifeLength: 0.75,
+                            absorbtionFactor: 0.1
+                        }
+                    });
+                        atuo.baseSize *= 1.25
+                      //  atuo.positionData.values.angle = shootAngle
+                        atuo.ai.viewRange = 1000
+                }
+        this.sizeFactor = this.physicsData.values.size / 50;
         this.ai = new AI(this);
-        this.ai.viewRange = 900 * tank.sizeFactor;
-        this.ai.targetFilter = (targetPos) => (targetPos.x - this.positionData.x) ** 2 + (targetPos.y - this.positionData.y) ** 2 <= this.ai.viewRange ** 2; // (1000 ** 2) 1000 radius
+        this.ai.viewRange = 850 * tank.sizeFactor;
+        this.ai.targetFilter = (targetPos) => (targetPos.x - this.tank.positionData.values.x) ** 2 + (targetPos.y - this.tank.positionData.values.y) ** 2 <= this.ai.viewRange ** 2; // (1000 ** 2) 1000 radius
         this.canControlDrones = typeof this.barrelEntity.definition.canControlDrones === 'boolean' && this.barrelEntity.definition.canControlDrones;
         this.physicsData.values.sides = bulletDefinition.sides ?? 3;
         if (this.physicsData.values.flags & PhysicsFlags.noOwnTeamCollision) this.physicsData.values.flags ^= PhysicsFlags.noOwnTeamCollision;
@@ -65,7 +125,7 @@ export default class Hive extends Bullet {
         }
         this.deathAccelFactor = 1;
 
-        this.physicsData.values.pushFactor = 2;
+        this.physicsData.values.pushFactor = 4;
         this.physicsData.values.absorbtionFactor = bulletDefinition.absorbtionFactor;
 
         this.baseSpeed /= 3;
@@ -99,8 +159,8 @@ export default class Hive extends Bullet {
             const base = this.baseAccel;
 
             // still a bit inaccurate, works though
-            /*let unitDist = (delta.x ** 2 + delta.y ** 2) / Drone.MAX_RESTING_RADIUS;
-           if (unitDist <= 1 && this.restCycle) {
+            let unitDist = (delta.x ** 2 + delta.y ** 2) / AutoDrone.MAX_RESTING_RADIUS;
+            if (unitDist <= 1 && this.restCycle) {
                 this.baseAccel /= 6;
                 this.positionData.angle += 0.01 + 0.012 * unitDist;
             } else {
@@ -110,7 +170,7 @@ export default class Hive extends Bullet {
                 this.positionData.angle = Math.atan2(delta.y, delta.x);
                 if (unitDist < 0.5) this.baseAccel /= 3;
                 this.restCycle = (delta.x ** 2 + delta.y ** 2) <= 4 * (this.tank.physicsData.values.size ** 2);
-            }*/
+            }
 
             if (!Entity.exists(this.barrelEntity)) this.destroy();
 

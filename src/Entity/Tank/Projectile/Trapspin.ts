@@ -31,21 +31,21 @@ import { BarrelBase } from "../TankBody";
 const SkimmerBarrelDefinition: BarrelDefinition = {
     angle: Math.PI / 2,
     offset: 0,
-    size:  66.526,
-    width:  37.967,
+    size: 66.526,
+    width: 49.578,
     delay: 0,
-    reload: 0.35,
+    reload: 1.5,
     recoil: 0,
     isTrapezoid: false,
     trapezoidDirection: 0,
-    addon: null,
+    addon: "trapLauncher",
     bullet: {
-        type: "bullet",
-        health: 0.3,
-        damage: 3 / 5,
-        speed: 1.1,
+        type: "trap",
+        health: 1,
+        damage: 2 / 5,
+        speed: 0.8,
         scatterRate: 1,
-        lifeLength: 0.25,
+        lifeLength: 1.5,
         sizeRatio: 1,
         absorbtionFactor: 1
     }
@@ -54,9 +54,9 @@ const SkimmerBarrelDefinition: BarrelDefinition = {
 /**
  * Represents all skimmereer skimmers in game.
  */
-export default class Skimmer extends Bullet implements BarrelBase {
+export default class TrapSpinner extends Bullet implements BarrelBase {
     /** Default speed the skimmer spins */
-    public static BASE_ROTATION = 0.1;
+    public static BASE_ROTATION = 0.2;
 
     /** The skimmer's barrels */
     private skimmerBarrels: Barrel[];
@@ -71,7 +71,7 @@ export default class Skimmer extends Bullet implements BarrelBase {
     public inputs: Inputs;
 
     /** The direction the bullet will rotating in. */
-    private rotationPerTick = Skimmer.BASE_ROTATION;
+    private rotationPerTick = TrapSpinner.BASE_ROTATION;
 
 
     public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number, direction: number) {

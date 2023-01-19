@@ -64,6 +64,8 @@ export default class TankBody extends LivingEntity implements BarrelBase {
     public cameraEntity: CameraEntity;
     /** The inputs of the client, lets the barrels know when to shoot etc. */
     public inputs: Inputs;
+    public static MAXORBS = 0;
+    public static OrbCount = 0;
 
     /** The tank's barrels, if any. */
     public barrels: Barrel[] = [];
@@ -85,7 +87,6 @@ export default class TankBody extends LivingEntity implements BarrelBase {
         super(game);
         this.cameraEntity = camera;
         this.inputs = inputs;
-
         this.physicsData.values.size = 50;
         this.physicsData.values.sides = 1;
         this.styleData.values.color = Color.Tank;
@@ -129,7 +130,6 @@ export default class TankBody extends LivingEntity implements BarrelBase {
         // Get the new tank data
         const tank = getTankById(id);
         const camera = this.cameraEntity;
-
         if (!tank) throw new TypeError("Invalid tank ID");
         this.definition = tank;
         if (!Entity.exists(camera)) throw new Error("No camera");
@@ -312,6 +312,7 @@ export default class TankBody extends LivingEntity implements BarrelBase {
     }
 
     public tick(tick: number) {
+        TankBody.MAXORBS = this.definition.maxorbs
 
         this.positionData.angle = Math.atan2(this.inputs.mouse.y - this.positionData.values.y, this.inputs.mouse.x - this.positionData.values.x);
 
@@ -368,22 +369,31 @@ export default class TankBody extends LivingEntity implements BarrelBase {
             // Damage
             this.damagePerTick = this.cameraEntity.cameraData.statLevels[Stat.BodyDamage] * 6 + 20;
             if (this._currentTank === Tank.Spike) this.damagePerTick *= 1.5;
+            if (this._currentTank === Tank.Saw) this.damagePerTick *= 1.1;
             if (this._currentTank === Tank.autosmasher) this.damagePerTick *= 1.1;
+            if (this._currentTank === Tank.Bumper) this.damagePerTick *= 0.375;
+            if (this._currentTank === Tank.Bumper) this.damageReduction = 0.375;
 
             // Max Health
             const maxHealthCache = this.healthData.values.maxHealth;
 
             
-                       if (this._currentTank === Tank.MegaSmasher) this.damageReduction = 0.9;
-            this.healthData.maxHealth = this.definition.maxHealth + 2 * (this.cameraEntity.cameraData.values.level - 1) + this.cameraEntity.cameraData.values.statLevels.values[Stat.MaxHealth] * 20;
+                       if (this._currentTank === Tank.MegaSmasher){
+            this.healthData.maxHealth = this.definition.maxHealth + 2 * (this.cameraEntity.cameraData.values.level - 1) + (this.cameraEntity.cameraData.values.statLevels.values[Stat.MaxHealth] * 1.5) * 20;}
+            else if (this._currentTank === Tank.Saw){
+                this.healthData.maxHealth = this.definition.maxHealth + 2 * (this.cameraEntity.cameraData.values.level - 1) + (this.cameraEntity.cameraData.values.statLevels.values[Stat.MaxHealth]) * 15;}
+                else if (this._currentTank === Tank.autosmasher){
+                    this.healthData.maxHealth = this.definition.maxHealth + 2 * (this.cameraEntity.cameraData.values.level - 1) + (this.cameraEntity.cameraData.values.statLevels.values[Stat.MaxHealth]) * 22;}
+                else{ this.healthData.maxHealth = this.definition.maxHealth + 2 * (this.cameraEntity.cameraData.values.level - 1) + this.cameraEntity.cameraData.values.statLevels.values[Stat.MaxHealth] * 20}
             if (this.healthData.values.health === maxHealthCache) this.healthData.health = this.healthData.maxHealth; // just in case
             else if (this.healthData.values.maxHealth !== maxHealthCache) {
                 this.healthData.health *= this.healthData.values.maxHealth / maxHealthCache
             }
 
             // Regen
-            this.regenPerTick = (this.healthData.values.maxHealth * 4 * this.cameraEntity.cameraData.values.statLevels.values[Stat.HealthRegen] + this.healthData.values.maxHealth) / 25000;
+            this.regenPerTick = (this.healthData.values.maxHealth * 4 * (this.cameraEntity.cameraData.values.statLevels.values[Stat.HealthRegen] * 1.25) + this.healthData.values.maxHealth) / 25000;
             if (this._currentTank === Tank.MegaSmasher) this.regenPerTick *= 1.25;
+            if (this._currentTank === Tank.Bumper) {this.physicsData.pushFactor = 100;}else{this.physicsData.pushFactor = 8}
             // Reload
             this.reloadTime = 15 * Math.pow(0.914, this.cameraEntity.cameraData.values.statLevels.values[Stat.Reload]);
         }

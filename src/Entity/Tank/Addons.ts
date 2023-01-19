@@ -53,7 +53,7 @@ export class Addon {
      * Read (addons.md on diepindepth)[https://github.com/ABCxFF/diepindepth/blob/main/extras/addons.md]
      * for more details and examples.
      */
-    public createGuard(sides: number, sizeRatio: number, offsetAngle: number, radiansPerTick: number): GuardObject {
+    public createGuard(sides: number, sizeRatio: number, offsetAngle: number, radiansPerTick: number): LivingEntity {
         return new GuardObject(this.game, this.owner, sides, sizeRatio, offsetAngle, radiansPerTick);
     }
     public createGuard2(): OverdriveAddon {
@@ -111,6 +111,8 @@ export class Addon {
         return rotator;
     }
 
+
+    
     protected createAutoTurretsWeak(count: number) {
         const rotPerTick = AI.PASSIVE_ROTATION;
         const MAX_ANGLE_RANGE = PI2 / 4; // keep within 90º each side
@@ -279,6 +281,7 @@ export class Addon {
 
         return rotator;
     }
+    
     protected createAutoStalkerTurrets(count: number) {
         const rotPerTick = AI.PASSIVE_ROTATION;
         const MAX_ANGLE_RANGE = PI2 / 4; // keep within 90º each side
@@ -506,8 +509,8 @@ const AutoTurretMegaDefinition: BarrelDefinition = {
     addon: null,
     bullet: {
         type: "bullet",
-        health: 1.5,
-        damage: 1.2,
+        health: 1.35,
+        damage: 1.15,
         speed: 0.85,
         scatterRate: 1,
         lifeLength: 1,
@@ -519,7 +522,7 @@ const AutoTurretTrapDefinition: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 43,
-    width: 45 * 0.7,
+    width: 50 * 0.7,
     delay: 0.01,
     reload: 3,
     recoil: 0,
@@ -529,12 +532,12 @@ const AutoTurretTrapDefinition: BarrelDefinition = {
     bullet: {
         type: "trap",
         health: 1.5,
-        damage: 1,
-        speed: 2.5,
+        damage: 1.5,
+        speed: 1.5,
         scatterRate: 1,
         lifeLength: 2,
         sizeRatio: 0.8,
-        absorbtionFactor: 0.75
+        absorbtionFactor: 1
     }
 };
 
@@ -599,7 +602,7 @@ export class OverdriveAddon extends Addon {
         }
     }
 }
-export class GuardObject extends ObjectEntity implements BarrelBase {
+export class GuardObject extends LivingEntity implements BarrelBase {
     /***** From BarrelBase *****/
     public inputs: Inputs;
     public cameraEntity: Entity;
@@ -614,7 +617,7 @@ export class GuardObject extends ObjectEntity implements BarrelBase {
 
     public constructor(game: GameServer, owner: BarrelBase, sides: number, sizeRatio: number, offsetAngle: number, radiansPerTick: number) {
         super(game);
-
+        this.damagePerTick = 10
         this.owner = owner;
         this.inputs = owner.inputs;
         this.cameraEntity = owner.cameraEntity;
@@ -661,6 +664,70 @@ export class GuardObject extends ObjectEntity implements BarrelBase {
     }
 }
 
+
+export class GuardObject2 extends ObjectEntity implements BarrelBase {
+    /***** From BarrelBase *****/
+    public inputs: Inputs;
+    public cameraEntity: Entity;
+    public reloadTime: number;
+
+    /** Helps the class determine size ratio as well as who is the owner */
+    public owner: BarrelBase;
+    /** To store the size ratio (in compared to the owner) */
+    public sizeRatio: number;
+    /** Radians per tick, how many radians the guard will rotate in a tick */
+    public radiansPerTick: number;
+
+    public constructor(game: GameServer, owner: BarrelBase, sides: number, sizeRatio: number, offsetAngle: number, radiansPerTick: number) {
+        super(game);
+
+        this.owner = owner;
+        this.inputs = owner.inputs;
+        this.cameraEntity = owner.cameraEntity;
+        // It's weird, but it's how it works
+        sizeRatio *= Math.SQRT1_2
+        this.sizeRatio = sizeRatio;
+        this.radiansPerTick = radiansPerTick;
+
+        this.setParent(owner);
+        this.relationsData.values.owner = owner;
+        this.relationsData.values.team = owner.relationsData.values.team;
+this.styleData.zIndex += 2
+this.styleData.flags |= StyleFlags.showsAboveParent
+        this.styleData.values.color = Color.Border;
+        this.positionData.values.flags |= PositionFlags.absoluteRotation;
+        this.positionData.values.angle = offsetAngle;
+        this.physicsData.values.sides = sides;
+        this.reloadTime = owner.reloadTime;
+        this.physicsData.values.size = owner.physicsData.values.size * sizeRatio;
+    }
+
+    
+    /**
+     * Size factor, used for calculation of the turret and base size.
+     */
+    get sizeFactor() {
+        return this.owner.sizeFactor;
+    }
+
+    /**
+     * Called (if ever) similarly to LivingEntity.onKill
+     * Spreads onKill to owner
+     */
+    public onKill(killedEntity: LivingEntity) {
+        if (!(this.owner instanceof LivingEntity)) return;
+        this.owner.onKill(killedEntity);
+    }
+
+    public tick(tick: number): void {
+        this.reloadTime = this.owner.reloadTime;
+        this.physicsData.size = this.sizeRatio * this.owner.physicsData.values.size;
+        this.positionData.angle = this.owner.positionData.angle
+        // It won't ever do any collisions, so no need to tick the object
+        // super.tick(tick);
+    }
+}
+
 /** Spikes addon. */
 class SpikeAddon extends Addon {
     public constructor(owner: BarrelBase) {
@@ -686,6 +753,21 @@ class SmasherAddon extends Addon {
         super(owner);
 
         this.createGuard(6, 1.15, 0, .1);
+    }
+}
+class OverDriveAddon extends Addon {
+    public constructor(owner: BarrelBase) {
+        super(owner);
+
+        const b = new GuardObject2(this.game, this.owner, 4, 0.55, 0, 0);;
+        b.styleData.color = Color.Barrel
+    }
+}
+class BumperAddon extends Addon {
+    public constructor(owner: BarrelBase) {
+        super(owner);
+
+        this.createGuard(1, 1.75, 0, .1);
     }
 }
 /** Landmine addon. */
@@ -728,36 +810,79 @@ class LauncherAddon extends Addon {
         }
     }
 }
+
+class LauncherSmallAddon extends Addon {
+    public constructor(owner: BarrelBase) {
+        super(owner);
+
+        const launcher = new ObjectEntity(this.game);
+        const sizeRatio = 65.5 * Math.SQRT2 / 50;
+        const widthRatio = 32.8125/ 50;
+        const size = this.owner.physicsData.values.size;
+
+        launcher.setParent(this.owner);
+        launcher.relationsData.values.owner = this.owner;
+        launcher.relationsData.values.team = this.owner.relationsData.values.team;
+        launcher.styleData.zIndex += 1
+        launcher.physicsData.values.size = sizeRatio * size;
+        launcher.physicsData.values.width = widthRatio * size;
+        launcher.positionData.values.x = launcher.physicsData.values.size / 2;
+
+        launcher.physicsData.values.flags |= PhysicsFlags.isTrapezoid;
+        launcher.styleData.values.color = Color.Barrel;
+        launcher.physicsData.values.sides = 2;
+
+        launcher.tick = () => {
+            const size = this.owner.physicsData.values.size;
+
+            launcher.physicsData.size = sizeRatio * size;
+            launcher.physicsData.width = widthRatio * size;
+            launcher.positionData.x = launcher.physicsData.values.size / 2;
+        }
+    }
+}
+
 class LauncherAddon2 extends Addon {
     public constructor(owner: BarrelBase) {
         super(owner);
 
-        const launcher2 = new ObjectEntity(this.game);
-        const sizeRatio = 50 * Math.SQRT2 / 50;
-        const widthRatio = 1.4;
-        const size = this.owner.physicsData.values.size;
+        for (let i = 0; i < 3; ++i) {
+            const angle = PI2 * ((i / 3));
+            const angle2 = PI2 * ((i / 3)  - 1 / (6));
 
-        launcher2.setParent(this.owner);
-        launcher2.relationsData.values.owner = this.owner;
-        launcher2.relationsData.values.team = this.owner.relationsData.values.team;
-
-        launcher2.physicsData.values.size = sizeRatio * size;
-        launcher2.physicsData.values.width = widthRatio * size;
-        launcher2.positionData.values.x = launcher2.physicsData.values.size / 2;
-
-        launcher2.styleData.values.color = Color.Barrel;
-        //launcher.physics.values.objectFlags |= ObjectFlags.isTrapezoid;
-        launcher2.physicsData.values.sides = 2;
-
-        launcher2.tick = () => {
+            const launcher = new ObjectEntity(this.game);
+            const sizeRatio = 58.5 * Math.SQRT2 / 50;
+            const widthRatio = 28.75 / 50;
             const size = this.owner.physicsData.values.size;
+    
+            launcher.setParent(this.owner);
+            launcher.relationsData.values.owner = this.owner;
+            launcher.relationsData.values.team = this.owner.relationsData.values.team;
+            launcher.physicsData.values.flags |= PhysicsFlags.isTrapezoid;
+    
+            launcher.physicsData.values.size = sizeRatio * size;
+            launcher.physicsData.values.width = widthRatio * size;
+            launcher.positionData.values.x = launcher.physicsData.values.size / 2;
+            launcher.styleData.values.color = Color.Barrel;
+            launcher.physicsData.values.sides = 2;
+            launcher.positionData.angle = angle
+            const tickBase2 = launcher.tick;
 
-            launcher2.physicsData.size = sizeRatio * size;
-            launcher2.physicsData.width = widthRatio * size;
-            launcher2.positionData.x = launcher2.physicsData.values.size / 2;
-            launcher2.physicsData.size = sizeRatio * size;
-            launcher2.physicsData.width = widthRatio * size;
-            launcher2.positionData.x = launcher2.physicsData.values.size / 2;
+            launcher.positionData.values.x = Math.cos(angle) * this.owner.physicsData.values.size;
+            launcher.positionData.values.y = Math.sin(angle) * this.owner.physicsData.values.size;
+            launcher.tick = (tick: number) => {
+                const size = this.owner.physicsData.values.size;
+
+                launcher.physicsData.size = sizeRatio * size;
+                launcher.physicsData.width = widthRatio * size;
+                launcher.positionData.x = Math.cos(angle) * this.owner.physicsData.size;
+                launcher.positionData.y = Math.sin(angle) * this.owner.physicsData.size;
+        
+
+                tickBase2.call(launcher, tick);
+
+                //barr.positionData.values.angle = angle + rotator.positionData.values.angle;
+            }
         }
     }
 }
@@ -865,6 +990,40 @@ class PronouncedAddon extends Addon {
         }
     }
 }
+
+/** The thing above ranger's barrel. */
+class PronouncedAddon2 extends Addon {
+    public constructor(owner: BarrelBase) {
+        super(owner);
+
+        const pronounce = new ObjectEntity(this.game);
+        const sizeRatio = 50 / 50;
+        const widthRatio = 50 / 50;
+        const offsetRatio = 40 / 50;
+        const size = this.owner.physicsData.values.size;
+
+        pronounce.setParent(this.owner);
+        pronounce.relationsData.values.owner = this.owner;
+        pronounce.relationsData.values.team = this.owner.relationsData.values.team
+
+        pronounce.physicsData.values.size = sizeRatio * size;
+        pronounce.physicsData.values.width = widthRatio * size;
+        pronounce.positionData.values.x = offsetRatio * size;
+        pronounce.positionData.values.angle = Math.PI;
+
+        pronounce.styleData.values.color = Color.Barrel;
+        pronounce.physicsData.values.flags |= PhysicsFlags.isTrapezoid;
+        pronounce.physicsData.values.sides = 2;
+
+        pronounce.tick = () => {
+            const size = this.owner.physicsData.values.size;
+
+            pronounce.physicsData.size = sizeRatio * size;
+            pronounce.physicsData.width = widthRatio * size;
+            pronounce.positionData.x = offsetRatio * size;
+        }
+    }
+}
 /** The thing above Gunner + Destroyer Dominator's barrel. */
 class PronouncedDomAddon extends Addon {
     public constructor(owner: BarrelBase) {
@@ -932,7 +1091,7 @@ class AutoRocketAddon extends Addon {
         const base = new AutoTurret(owner, {
             angle: 0,
             offset: 0,
-            size: 65,
+            size: 55,
             width: 42 * 0.7,
             delay: 0,
             reload: 4,
@@ -944,8 +1103,8 @@ class AutoRocketAddon extends Addon {
                 type: "bullet",
                 sizeRatio: 1,
                 health: 0.85,
-                damage: 1.25,
-                speed: 1.5,
+                damage: 1.2,
+                speed: 1.4,
                 scatterRate: 0.3,
                 lifeLength: 1,
                 absorbtionFactor: 0.1
@@ -1027,7 +1186,7 @@ class MegaSmasherAddon extends Addon {
     public constructor(owner: BarrelBase) {
         super(owner);
 
-        this.createGuard(6, 1.45, 0, .1);
+        this.createGuard(6, 1.3, 0, .1);
     }
 }
 
@@ -1035,10 +1194,10 @@ class SawAddon extends Addon {
     public constructor(owner: BarrelBase) {
         super(owner);
 
-        this.createGuard(4, 1.5, 0, .1);
+        this.createGuard(4, 1.55, Math.PI/8, .15);
     }
 }
-class BumperAddon extends Addon {
+class RammerAddon extends Addon {
     public constructor(owner: BarrelBase) {
         super(owner);
         //owner.positionData.values.angle
@@ -1072,8 +1231,12 @@ export const AddonById: Record<addonId, typeof Addon | null> = {
     mega3: Mega3Addon,
     stalker3 : Stalker3Addon,
     auto4    : Auto4Addon,
+    rammer   : RammerAddon,
     bumper   : BumperAddon,
+    launchersmall : LauncherSmallAddon,
     bigautoturret: THEBIGONE,
     joint3 : Joint3Addon,
-    droneturret :Banshee
+    overdrive : OverDriveAddon,
+    droneturret :Banshee, 
+    pronounced2 : PronouncedAddon2
 }

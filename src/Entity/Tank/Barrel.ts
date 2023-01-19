@@ -18,13 +18,15 @@ import * as util from "../../util";
 import Bullet from "./Projectile/Bullet";
 import Blunt from "./Projectile/Blunt";
 import BluntTrap from "./Projectile/BluntTrap";
+import Orbit from "./Projectile/Orbit";
 import Trap from "./Projectile/Trap";
 import Drone from "./Projectile/Drone";
 import Hive from "./Projectile/Hive";
 import Rocket from "./Projectile/Rocket";
-import Spinner from "./Projectile/Skimmer";
+import Spinner from "./Projectile/Spinner";
 import Spinner4 from "./Projectile/Spinner4";
-import Skimmer from "./Projectile/Skimrocket";
+import TrapSpinner from "./Projectile/Trapspin";
+import Skimmer from "./Projectile/Skimmer";
 import Minion from "./Projectile/Minion";
 import DomMinion from "./Projectile/DomMinion";
 import ObjectEntity from "../Object";
@@ -39,18 +41,21 @@ import MazeWall from "../Misc/MazeWall";
 import CrocSkimmer from "./Projectile/CrocSkimmer";
 import { BarrelAddon, BarrelAddonById } from "./BarrelAddons";
 import { Swarm } from "./Projectile/Swarm";
+import { AutoSwarm } from "./Projectile/AutoSwarm";
 import NecromancerSquare from "./Projectile/NecromancerSquare";
 import MiniMinion from "./Projectile/MiniMinion";
 import MegaMinion from "./Projectile/MegaMinion";
 import Launrocket from "./Projectile/Launrocket";
 import Drone2 from "./Projectile/Drone2";
+import AutoDrone from "./Projectile/AutoDrone";
 import AutoTrap from "./Projectile/AutoTrap";
 import NecromancerPentagon from "./Projectile/NecromancerPenta";
 import Pentagon from "./Projectile/PentaDrone";
 import NecromancerTriangle from "./Projectile/NecromancerTriangle";
 import MegaSpinner from "./Projectile/MegaSpinner";
-import { tps } from "../../config";
-
+import Mine from "./Projectile/Mine";
+import BombDrone from "./Projectile/BombDrone";
+import Striker from "./Projectile/Striker";
 /**
  * Class that determines when barrels can shoot, and when they can't.
  */
@@ -75,7 +80,7 @@ export class ShootCycle {
             this.reloadTime = reloadTime;
         }
 
-        const alwaysShoot = (this.barrelEntity.definition.forceFire) || (this.barrelEntity.definition.bullet.type === 'basedrone') || (this.barrelEntity.definition.bullet.type === 'pentadrone') || (this.barrelEntity.definition.bullet.type === 'domminion') || (this.barrelEntity.definition.bullet.type === 'megaminion') || (this.barrelEntity.definition.bullet.type === 'miniminion') || (this.barrelEntity.definition.bullet.type === 'minion') || (this.barrelEntity.definition.bullet.type === 'drone') || (this.barrelEntity.definition.bullet.type === 'necrodrone') || (this.barrelEntity.definition.bullet.type === 'necropentadrone') || (this.barrelEntity.definition.bullet.type === 'necrotriangledrone');
+        const alwaysShoot = (this.barrelEntity.definition.forceFire) ||(this.barrelEntity.definition.bullet.type === 'bombdrone')||(this.barrelEntity.definition.bullet.type === 'autodrone') || (this.barrelEntity.definition.bullet.type === 'pentadrone') || (this.barrelEntity.definition.bullet.type === 'domminion') || (this.barrelEntity.definition.bullet.type === 'megaminion') || (this.barrelEntity.definition.bullet.type === 'miniminion') || (this.barrelEntity.definition.bullet.type === 'minion') || (this.barrelEntity.definition.bullet.type === 'drone') || (this.barrelEntity.definition.bullet.type === 'necrodrone') || (this.barrelEntity.definition.bullet.type === 'necropentadrone') || (this.barrelEntity.definition.bullet.type === 'necrotriangledrone');
 
         if (this.pos >= reloadTime) {
             // When its not shooting dont shoot, unless its a drone
@@ -85,6 +90,10 @@ export class ShootCycle {
             }
             // When it runs out of drones, dont shoot
             if (typeof this.barrelEntity.definition.droneCount === 'number' && this.barrelEntity.droneCount >= this.barrelEntity.definition.droneCount) {
+                this.pos = reloadTime;
+                return;
+            }
+            if (typeof  TankBody.MAXORBS === 'number' && TankBody.OrbCount >= TankBody.MAXORBS) {
                 this.pos = reloadTime;
                 return;
             }
@@ -156,7 +165,7 @@ export default class Barrel extends ObjectEntity {
 
         this.barrelData.values.trapezoidDirection = barrelDefinition.trapezoidDirection;
         this.shootCycle = new ShootCycle(this);
-        const iseffectedbyspeed = (this.definition.bullet.type === 'spinner' || this.definition.bullet.type === 'spinner4' || this.definition.bullet.type === 'megaspinner')
+        const iseffectedbyspeed = (this.definition.bullet.type === 'trapspinner'  || this.definition.bullet.type === 'spinner' || this.definition.bullet.type === 'spinner4' || this.definition.bullet.type === 'megaspinner')
         if(!iseffectedbyspeed){
         this.bulletAccel = (20 + (owner.cameraEntity.cameraData?.values.statLevels.values[Stat.BulletSpeed] || 0) * 3) * barrelDefinition.bullet.speed;
         }
@@ -188,6 +197,9 @@ export default class Barrel extends ObjectEntity {
             case "spinner":
                 new Spinner(this, this.tank, tankDefinition, angle, this.tank.inputs.attemptingRepel() ? -Spinner.BASE_ROTATION : Spinner.BASE_ROTATION);
                 break;
+            case "trapspinner":
+                new TrapSpinner(this, this.tank, tankDefinition, angle, this.tank.inputs.attemptingRepel() ? -Spinner.BASE_ROTATION : Spinner.BASE_ROTATION);
+                break;
             case "spinner4":
                 new Spinner4(this, this.tank, tankDefinition, angle, this.tank.inputs.attemptingRepel() ? -Spinner.BASE_ROTATION : Spinner.BASE_ROTATION);
                 break;
@@ -209,14 +221,23 @@ export default class Barrel extends ObjectEntity {
             case 'trap':
                 new Trap(this, this.tank, tankDefinition, angle, this.rootParent);
                 break;
-            case 'basedrone':
-                const drone = new Drone(this, this.tank, tankDefinition, angle);
-                drone.ai.viewRange = 3250;
-                drone.ai.targetFilter = (targetPos, team) => team !== this.game.arena && (targetPos.x - this.tank.positionData.values.x) ** 2 + (targetPos.y - this.tank.positionData.values.y) ** 2 <= drone.ai.viewRange ** 2;
-                drone.ai["_findTargetInterval"] = tps;
+                case 'striker':
+                    new Striker(this, this.tank, tankDefinition, angle, this.rootParent);
+                    break;
+            case 'mine':
+                new Mine(this, this.tank, tankDefinition, angle, this.rootParent);
                 break;
             case 'drone':
                 new Drone(this, this.tank, tankDefinition, angle);
+                break;
+                case 'bombdrone':
+                    new BombDrone(this, this.tank, tankDefinition, angle);
+                    break;
+                case 'autodrone':
+                    new AutoDrone(this, this.tank, tankDefinition, angle);
+                    break;
+            case 'orbit':
+                new Orbit(this, this.tank, tankDefinition, angle);
                 break;
             case 'pentadrone':
                 new Pentagon(this, this.tank, tankDefinition, angle);
@@ -226,6 +247,9 @@ export default class Barrel extends ObjectEntity {
                 break;
             case 'swarm':
                 new Swarm(this, this.tank, tankDefinition, angle);
+                break;
+            case 'autoswarm':
+                new AutoSwarm(this, this.tank, tankDefinition, angle);
                 break;
             case 'minion':
                 new Minion(this, this.tank, tankDefinition, angle);
@@ -295,7 +319,7 @@ export default class Barrel extends ObjectEntity {
         this.positionData.y = Math.sin(this.definition.angle) * size / 2 + Math.cos(this.definition.angle) * this.definition.offset * sizeFactor;
 
         // Updates bullet accel too
-        const iseffectedbyspeed = (this.definition.bullet.type === 'spinner' || this.definition.bullet.type === 'spinner4' || this.definition.bullet.type === 'megaspinner')
+        const iseffectedbyspeed = (this.definition.bullet.type === 'trapspinner'  || this.definition.bullet.type === 'spinner' || this.definition.bullet.type === 'spinner4' || this.definition.bullet.type === 'megaspinner')
         if(!iseffectedbyspeed){
         this.bulletAccel = (20 + (this.tank.cameraEntity.cameraData?.values.statLevels.values[Stat.BulletSpeed] || 0) * 3) * this.definition.bullet.speed;
         }

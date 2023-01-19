@@ -23,56 +23,60 @@ import { PhysicsFlags, StyleFlags } from "../../../Const/Enums";
 import { getTankById, TankDefinition } from "../../../Const/TankDefinitions";
 import { Entity } from "../../../Native/Entity";
 import { AI, AIState } from "../../AI";
-import { BarrelBase } from "../TankBody";
+import TankBody, { BarrelBase } from "../TankBody";
 import { CameraEntity } from "../../../Native/Camera";
+import { PI2 } from "../../../util";
 
 /**
  * The drone class represents the drone (projectile) entity in diep.
  */
-export default class Drone2 extends Bullet {
+export default class Orbit extends Bullet {
     /** The AI of the drone (for AI mode) */
     public static FOCUS_RADIUS = 850 ** 2;
     public ai: AI;
-    public boom: boolean = false
-    public boom2: boolean = false
+    public fire: boolean = true
     /** The drone's radius of resting state */
     public static MAX_RESTING_RADIUS = 400 ** 2;
     public static BASE_ROTATION = 0.1;
+    public static dronecount = new Array(100);
     //private rotationPerTick = Drone.BASE_ROTATION;
     /** Used let the drone go back to the player in time. */
-
+    public num : number
+    public angles : number
+    public timer : number
     /** Cached prop of the definition. */
     protected canControlDrones: boolean;
 
     public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
         super(barrel, tank, tankDefinition, shootAngle);
         //this.rotationPerTick = direction;
+        Orbit.dronecount = Orbit.dronecount.filter(val => val !== this.num)
+        Orbit.dronecount.push()
         const bulletDefinition = barrel.definition.bullet;
         this.usePosAngle = false;
         this.ai = new AI(this);
         this.canControlDrones = typeof this.barrelEntity.definition.canControlDrones === 'boolean' && this.barrelEntity.definition.canControlDrones;
-        this.physicsData.values.sides = bulletDefinition.sides ?? 5;
-        if (this.physicsData.values.flags & PhysicsFlags.noOwnTeamCollision) this.physicsData.values.flags ^= PhysicsFlags.noOwnTeamCollision;
-        this.physicsData.values.flags |= PhysicsFlags.onlySameOwnerCollision;
-        this.styleData.values.flags &= ~StyleFlags.hasNoDmgIndicator;
-
+        this.physicsData.values.sides = bulletDefinition.sides ?? 1;
         // TOD(ABCO:
         // No hardcoded - unless it is hardcoded in diep (all signs show that it might be so far)
         this.deathAccelFactor = 1;
-
+        this.angles = 0
+        this.timer = 0
         this.physicsData.values.pushFactor = 4;
         this.physicsData.values.absorbtionFactor = bulletDefinition.absorbtionFactor;
-
         this.baseSpeed /= 3;
 
-        barrel.droneCount += 1;
-
+        TankBody.OrbCount += 1;
+        this.num = TankBody.OrbCount
         this.ai.movementSpeed = this.ai.aimSpeed = this.baseAccel;
+        Orbit.dronecount[this.num] += 1;
     }
 
     /** Extends LivingEntity.destroy - so that the drone count decreases for the barrel. */
     public destroy(animate=true) {
-        if (!animate) this.barrelEntity.droneCount -= 1;
+        Orbit.dronecount[this.num] -= 1;
+
+        if (!animate) TankBody.OrbCount -= 1;
 
         super.destroy(animate);
     }
@@ -82,61 +86,68 @@ export default class Drone2 extends Bullet {
     }
 
     public tick(tick: number) {
-        if (!this.canControlDrones){
-            if(tick - this.spawnTick >= this.lifeLength/8 && this.boom == false){
-                if(this.boom2 == false){
-                    this.boom2 = true
-                this.baseAccel *= 1.5}
-                const delta = {
-                    x: this.positionData.values.x - this.tank.positionData.values.x,
-                    y: this.positionData.values.y - this.tank.positionData.values.y
-                }
-                const base = this.baseAccel;
-            
-                let unitDist = (delta.x ** 2 + delta.y ** 2) / Drone2.MAX_RESTING_RADIUS;
-                const offset = Math.atan2(delta.y, delta.x) + Math.PI / 2
-                delta.x = this.tank.positionData.values.x + Math.cos(offset) * this.tank.physicsData.values.size * 0.5 - this.positionData.values.x;
-                delta.y = this.tank.positionData.values.y + Math.sin(offset) * this.tank.physicsData.values.size * 0.5 - this.positionData.values.y;
-                this.movementAngle = Math.atan2(delta.y, delta.x);
-                if (unitDist < 0.1){ this.baseAccel /= 3;
-                this.destroy()}
-                    this.baseAccel = base;
-
+        let shifted = false;
+        for (let n = 0; n < this.num; n++) {
+            if (Orbit.dronecount[n] === 0) {
+                Orbit.dronecount[this.num] -= 1;            
+                this.num--;
+                shifted = true;
+                //only let it move down once at a time, prevents overlaps and weird stuff
+                break;
             }
-
         }
-        if (this.canControlDrones){
-            if(tick - this.spawnTick >= this.lifeLength/16 && this.boom == false){
-
-
-                const delta = {
-                    x: this.positionData.values.x - this.tank.positionData.values.x,
-                    y: this.positionData.values.y - this.tank.positionData.values.y
-                }
-                const base = this.baseAccel;
-                const dist = Math.atan2(delta.y, delta.x)
-
-                if (dist < Drone2.FOCUS_RADIUS / 4) { // Half
-                    this.movementAngle = this.positionData.values.angle + Math.PI;
-                } else if (dist < Drone2.FOCUS_RADIUS) {
-                   this.movementAngle = this.positionData.values.angle;
-                } else this.movementAngle = this.positionData.values.angle;
-                let unitDist = (delta.x ** 2 + delta.y ** 2) / Drone2.MAX_RESTING_RADIUS;
-                const offset = Math.atan2(delta.y, delta.x) + Math.PI / 2
-                delta.x = this.tank.positionData.values.x + Math.cos(offset) * this.tank.physicsData.values.size * 3 - this.positionData.values.x;
-                delta.y = this.tank.positionData.values.y + Math.sin(offset) * this.tank.physicsData.values.size * 3 - this.positionData.values.y;
-                this.movementAngle = Math.atan2(delta.y, delta.x);
+        if (!shifted && Orbit.dronecount[this.num] > 1) {
+            //this.num++;
+            Orbit.dronecount[this.num] -= 1;
+        }
+        if(this.fire == true){
+            this.timer++
+            if(this.timer == 5){
+                this.fire = false
+                this.timer = 2000
+            }
+        }
+            if(this.fire == false){
                 
-                if (unitDist < 0.1){
-                    //this.movementAngle = this.positionData.values.angle + Math.PI;
-                    // this.baseAccel /= 3;
-                //this.destroy()
-            }
-                    this.baseAccel = base;
+            if (!Entity.exists(this.barrelEntity)) this.destroy()
+            this.lifeLength = Infinity;
+            this.spawnTick = this.barrelEntity.game.tick;
+                const delta = {
+                    x: this.positionData.values.x - this.tank.positionData.values.x,
+                    y: this.positionData.values.y - this.tank.positionData.values.y
+                }
+                const delta2 = {
+                    x: this.positionData.values.x - this.tank.positionData.values.x,
+                    y: this.positionData.values.y - this.tank.positionData.values.y
+                }
+        const sizeFactor = this.tank.sizeFactor;
+        const base = this.baseAccel;
+            let angle = PI2 * ((this.num)/TankBody.OrbCount)
+            const offset = (Math.atan2(delta.y, delta.x) + Math.PI/ 2)
+            let dista = 3
+                let angle2 = angle
+                angle2 += tick * 0.3
+                const offset2 =  Math.atan2(this.tank.positionData.values.y, this.tank.positionData.values.x ) +  Math.PI /(this.barrelEntity.droneCount/this.num)
+                delta.x = this.tank.positionData.x +  (this.tank.physicsData.size  * Math.cos(angle + (tick * 0.1))) * dista -this.positionData.x;
+                delta.y = this.tank.positionData.y +  (this.tank.physicsData.size  * Math.sin(angle + (tick * 0.1))) * dista - this.positionData.y
+               
+                //this.movementAngle = Math.atan2(delta.y, delta.x);
+                this.movementAngle =  Math.atan2(delta.y, delta.x);
+            if(this.tank.inputs.attemptingRepel()){
+        const inputs = this.tank.inputs;
+
+                this.fire = true
+                this.angles = Math.atan2((inputs.mouse.y - this.positionData.values.y), (inputs.mouse.x - this.positionData.values.x));
+                this.movementAngle = this.angles
+                this.baseSpeed *= 2;
+                this.addAcceleration(this.movementAngle, this.baseSpeed * 2);
+                //this.barrelEntity.droneCount =0
+                this.lifeLength = 72 * this.barrelEntity.definition.bullet.lifeLength;
+
 
             }
         }
-        this.positionData.angle += 0.3
+        
         super.tick(tick);
         // So that switch tank works, as well as on death
 
