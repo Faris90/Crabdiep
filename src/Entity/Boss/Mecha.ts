@@ -36,13 +36,11 @@ import { GuardObject } from "../Tank/Addons";
  */
 const MountedTurretDefinition: BarrelDefinition = {
     ...AutoTurretDefinition,
-    reload:1.5,
-    size:80,
     bullet: {
         ...AutoTurretDefinition.bullet,
         speed: 2.3,
-        damage: 1.2,
-        health: 8,
+        damage: 0.75,
+        health: 12.5,
         color: Color.Neutral
     }
 };
@@ -54,7 +52,7 @@ const DefenderDefinition: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 330,
-    width: 130.2,
+    width: 130,
     delay: 0,
     reload: 5,
     recoil: 2,
@@ -80,22 +78,22 @@ const DefenderDefinition2: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 240,
-    width: 69.3,
+    width: 70,
     delay: 0,
-    reload: 6,
+    reload: 3,
     recoil: 0,
     isTrapezoid: true,
     trapezoidDirection: 3.141592653589793,
     addon: null,
     forceFire: true,
     bullet: {
-        type: "homing",
+        type: "bullet",
         sizeRatio: 1,
         health: 3,
-        damage: 2,
-        speed: 1.5,
+        damage: 4,
+        speed: 3,
         scatterRate: 0.3,
-        lifeLength: 2,
+        lifeLength: 1.5,
         absorbtionFactor: 0,
         color: Color.Neutral
     }
@@ -115,7 +113,7 @@ export default class Mecha extends AbstractBoss {
 
     public constructor(game: GameServer) {
         super(game);
-        this.nameData.values.name = 'Mechanical Traveler';
+        this.nameData.values.name = 'Mecha';
         this.styleData.values.color = Color.NecromancerPentagon;
         this.relationsData.values.team = this.game.arena;
         this.physicsData.values.size = DEFENDER_SIZE * Math.SQRT1_2;
@@ -127,7 +125,7 @@ export default class Mecha extends AbstractBoss {
 
 
         const rotator = new GuardObject(this.game, this, 5, 0.75, 0, -this.ai.passiveRotation )  as GuardObject & { joints: Barrel[]} ;
-        rotator.styleData.values.color = Color.NecromancerPentagon
+        rotator.styleData.values.color = Color.Barrel
         rotator.physicsData.values.sides = 8;
 
         const offsetRatio = 0;

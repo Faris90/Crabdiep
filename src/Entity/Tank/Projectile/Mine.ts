@@ -37,7 +37,7 @@ const Bombshot1: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 0,
-    width: 73.5,
+    width: 75,
     delay: 0,
     reload: 100,
     recoil: 1,
@@ -57,14 +57,11 @@ const Bombshot1: BarrelDefinition = {
         absorbtionFactor: 0.3
     }
 };
-
-
-
 const Bombshot2: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 0,
-    width: 63,
+    width: 60,
     delay: 0,
     reload: 100,
     recoil: 1,
@@ -89,7 +86,7 @@ const Bombshot3: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 0,
-    width: 126,
+    width: 125,
     delay: 0,
     reload: 100,
     recoil: 0,
@@ -107,31 +104,6 @@ const Bombshot3: BarrelDefinition = {
         lifeLength: 5,
         sizeRatio: 1,
         absorbtionFactor: 0
-    }
-};
-
-const Bombshot4: BarrelDefinition = {
-    angle: 0,
-    offset: 0,
-    size: 0,
-    width: 69.3,
-    delay: 0,
-    reload: 100,
-    recoil: 1,
-    isTrapezoid: false,
-    trapezoidDirection: 0,
-    forceFire: true,
-    bulletdie: true,
-    addon: null,
-    bullet: {
-        type: "homing",
-        health: 0.9,
-        damage: 0.8,
-        speed: 0.8,
-        scatterRate: 0.3,
-        lifeLength: 1.5,
-        sizeRatio: 1,
-        absorbtionFactor: 0.3
     }
 };
 export default class Mine extends Bullet implements BarrelBase {
@@ -265,16 +237,6 @@ export default class Mine extends Bullet implements BarrelBase {
                  barr.physicsData.values.sides = 0
                  skimmerBarrels.push(barr);
         }
-    }else            if(this.tankDefinition && this.tankDefinition.id === Tank.Energize){
-        const skimmerBarrels: Barrel[] = this.skimmerBarrels =[]
-        for (let n = 0; n < 6; n++) {
-            const barr = new Barrel(this, {
-             ...Bombshot4,
-             angle: PI2 * (n / 6)
-         });
-         barr.physicsData.values.sides = 0
-         skimmerBarrels.push(barr);
-}
     }else if(this.tankDefinition && this.tankDefinition.id === Tank.Sticky){
         if(this.boom == true){
         const skimmerBarrels: Barrel[] = this.skimmerBarrels =[]
@@ -292,7 +254,6 @@ export default class Mine extends Bullet implements BarrelBase {
          }
          skimmerBarrels.push(barr);
         }
-        
 } else{
                 const skimmerBarrels: Barrel[] = this.skimmerBarrels =[]
                 for (let n = 0; n < 8; n++) {
@@ -319,12 +280,6 @@ export default class Mine extends Bullet implements BarrelBase {
         super.tick(tick);
         this.inputs = new Inputs();
         this.inputs.flags |= InputFlags.leftclick;
-        if (!Entity.exists(this.barrelEntity)){
-            this.canexploded = false
-            this.canexplode = false
-            this.boom = false
-             this.destroy()};
-
         if(this.canexploded){
         if(this.tank.inputs.attemptingRepel() && this.canexplode == true){
             this.canexploded = false

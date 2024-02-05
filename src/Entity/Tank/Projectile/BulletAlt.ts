@@ -42,7 +42,7 @@ export default class BulletAlt extends LivingEntity {
     /** Life length in ticks before the bullet dies. */
     protected lifeLength = 0;
     /** Angle the projectile is shot at. */
-    public movementAngle = 0;
+    protected movementAngle = 0;
     /** Definition of the tank (if existant) shooting the bullet. */
     protected tankDefinition: TankDefinition | null = null;
     /** Whether or not to use .shootAngle or .position.angle. */
@@ -99,8 +99,8 @@ export default class BulletAlt extends LivingEntity {
 
         const {x, y} = tank.getWorldPosition();
         this.cangoThroughRope = true
-        this.positionData.values.x = x + (Math.cos(shootAngle) * barrel.physicsData.values.size) - Math.sin(shootAngle) * barrel.definition.offset * sizeFactor + Math.cos(shootAngle) * (barrel.definition.distance || 0);
-        this.positionData.values.y = y + (Math.sin(shootAngle) * barrel.physicsData.values.size) + Math.cos(shootAngle) * barrel.definition.offset * sizeFactor + Math.sin(shootAngle) * (barrel.definition.distance || 0);
+        this.positionData.values.x = x + (Math.cos(shootAngle) * barrel.physicsData.values.size) - Math.sin(shootAngle) * barrel.definition.offset * sizeFactor;
+        this.positionData.values.y = y + (Math.sin(shootAngle) * barrel.physicsData.values.size) + Math.cos(shootAngle) * barrel.definition.offset * sizeFactor;
         this.movementAngle = 0;
     }
 

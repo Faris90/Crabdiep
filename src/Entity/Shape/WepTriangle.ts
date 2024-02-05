@@ -35,7 +35,7 @@ const GuardianSpawnerDefinition: BarrelDefinition = {
     angle: Math.PI,
     offset: 0,
     size: 90,
-    width: 60.9,
+    width: 58,
     delay: 0,
     reload: 6,
     recoil: 0,
@@ -60,7 +60,7 @@ const GuardianSpawnerDefinition2: BarrelDefinition = {
     angle: Math.PI,
     offset: 0,
     size: 70,
-    width: 63,
+    width: 62,
     delay: 0,
     reload: 4.5,
     recoil: 0,
@@ -110,8 +110,8 @@ export default class WepTriangle extends Triangle implements BarrelBase {
         this.isShiny = shiny;
 
         if (shiny) {
-            this.scoreReward *= 20;
-            this.healthData.values.health = this.healthData.values.maxHealth *= 5;
+            this.scoreReward *= 100;
+            this.healthData.values.health = this.healthData.values.maxHealth *= 10;
         }
 
 
@@ -128,7 +128,7 @@ export default class WepTriangle extends Triangle implements BarrelBase {
                 angle: 0,
                 offset: 0,
                 size: 70,
-                width: 42,
+                width: 40,
                 delay: 0,
                 reload: 3,
                 recoil: 0,

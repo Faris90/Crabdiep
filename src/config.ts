@@ -78,7 +78,7 @@ export const bossSpawningInterval = 10 * 60 * tps;
 //30 and 45
 
 /** Hashed (sha256) dev password */
-export const devPasswordHash: string | undefined = "";
+export const devPasswordHash: string | undefined = process.env.DEV_PASSWORD_HASH;
 
 /** Whether or not Verbose Logs should be logged */
 export const doVerboseLogs: boolean = false;
@@ -96,7 +96,7 @@ export const enum AccessLevel {
 export const unbannableLevelMinimum: AccessLevel = AccessLevel.FullAccess;
 
 /** Default access level, client's without valid password's will get set to this */
-export const defaultAccessLevel: AccessLevel = AccessLevel.kReserved;
+export const defaultAccessLevel: AccessLevel = AccessLevel.PublicAccess;
 
 /** The developer tokens by role (UNNECESSARY UNLESS DISCORD INTEGRATION) */
 export const devTokens: Record<string, AccessLevel> = {

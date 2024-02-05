@@ -52,7 +52,7 @@ const DefenderDefinition: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 250,
-    width: 119.7,
+    width: 120.4,
     delay: 0,
     reload: 7,
     recoil: 2,
@@ -78,7 +78,7 @@ const DefenderDefinition2: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 225,
-    width: 79.8,
+    width: 80,
     delay: 0,
     reload: 1,
     recoil: 0,
@@ -113,7 +113,7 @@ export default class Fortress extends AbstractBoss {
 
     public constructor(game: GameServer) {
         super(game);
-        this.nameData.values.name = 'Castle';
+        this.nameData.values.name = 'Fortress';
         this.styleData.values.color = Color.Border;
         this.relationsData.values.team = this.game.arena;
         this.physicsData.values.size = DEFENDER_SIZE * Math.SQRT1_2;
@@ -142,7 +142,7 @@ export default class Fortress extends AbstractBoss {
             angle: 0,
             offset: 0,
             size: 150,
-            width: 90.3,
+            width: 90,
             delay: 0,
             reload: 4,
             recoil: 0,

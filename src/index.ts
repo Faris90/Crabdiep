@@ -21,13 +21,12 @@ import * as fs from "fs";
 import * as WebSocket from "ws";
 import * as config from "./config"
 import * as util from "./util";
-import GameServer, { DiepGamemodeID } from "./Game";
+import GameServer from "./Game";
 import auth from "./Auth";
 import TankDefinitions from "./Const/TankDefinitions";
 import { commandDefinitions } from "./Const/Commands";
 import { ColorsHexCode } from "./Const/Enums";
-import FFAArena from "./Gamemodes/FFA";
-import MazeArena from "./Gamemodes/Maze";
+
 const PORT = config.serverPort;
 const ENABLE_API = config.enableApi && config.apiLocation;
 const ENABLE_CLIENT = config.enableClient && config.clientLocation && fs.existsSync(config.clientLocation);
@@ -118,7 +117,7 @@ wss.shouldHandle = function(request: http.IncomingMessage) {
 
     return endpointMatch.test(url);
 }
-export const gamer = new Map<DiepGamemodeID, GameServer>
+
 server.listen(PORT, () => {
     util.log(`Listening on port ${PORT}`);
 
@@ -126,20 +125,13 @@ server.listen(PORT, () => {
     //
     // NOTES(0): As of now, both servers run on the same process (and thread) here
     const ffa = new GameServer(wss, "ffa", "FFA");
-    //const team = new GameServer(wss, "teams", "Teams Chaos");
+    const team = new GameServer(wss, "teams", "Teams Chaos");
     const sbx = new GameServer(wss, "sandbox", "Sandbox");
+    const test = new GameServer(wss, "ball", "Test");
     const scenexe = new GameServer(wss, "scenexe", "Scenexe");
-    const sanctuary = new GameServer(wss, "sanctuary", "Sanctuary");
-    //const maze = new GameServer(wss, "maze", "Maze");
-    const crossroads = new GameServer(wss, "crossroads", "Crossroads");
-    //const dom = new GameServer(wss, "dom", "Domination");
-    //const ball = new GameServer(wss, "ball", "Ball");
-    games.push(ffa,scenexe,sbx);
-    gamer.set("scenexe", scenexe)
-    gamer.set("sanctuary", sanctuary)
-    gamer.set("crossroads", crossroads)
+    games.push(ffa,scenexe);
+
     util.saveToLog("Servers up", "All servers booted up.", 0x37F554);
-    //util.log(15 *(Math.PI/180));
     util.log("Dumping endpoint -> gamemode routing table");
     for (const game of games) console.log("> " + `localhost:${config.serverPort}/game/diepio-${game.gamemode}`.padEnd(40, " ") + " -> " + game.name);
 });

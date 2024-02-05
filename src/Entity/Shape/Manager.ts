@@ -40,8 +40,8 @@ export default class ShapeManager {
     /** Arena whose shapes are being managed */
     protected arena: ArenaEntity;
     public sentrychance = 0.1
-    public weaponchance = 0.005
-    public weaponchancenest = 0.0125
+    public weaponchance = 0.05
+    public weaponchancenest = 0.025
     public alphachance = 0.025
     public constructor(arena: ArenaEntity) {
         this.arena = arena;
@@ -156,11 +156,7 @@ export default class ShapeManager {
             }
         }
 
-        if(!shape.noMultiplier){
-            shape.scoreReward *= this.arena.shapeScoreRewardMultiplier;
-            shape.healthData.maxHealth *= this.arena.shapeHeathMultiplier;
-            shape.healthData.health *= this.arena.shapeHeathMultiplier;
-        }
+        shape.scoreReward *= this.arena.shapeScoreRewardMultiplier;
 
         return shape;
         // this.shapeCount += 1;
