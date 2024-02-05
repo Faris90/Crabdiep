@@ -20,7 +20,7 @@ import GameServer from "../../Game";
 import ObjectEntity from "../Object";
 import * as util from "../../util";
 
-import { PhysicsFlags, Color, StyleFlags, Tank, PositionFlags, Stat, StatCount, CameraFlags } from "../../Const/Enums";
+import { PhysicsFlags, Color, StyleFlags, Tank, PositionFlags, Stat, StatCount } from "../../Const/Enums";
 import LivingEntity from "../Live";
 import TankBody, { BarrelBase } from "../Tank/TankBody";
 import { TeamEntity } from "./TeamEntity";
@@ -30,9 +30,6 @@ import { Inputs } from "../AI";
 import Bullet from "../Tank/Projectile/Bullet";
 import AbstractShape from "../Shape/AbstractShape";
 import Partical from "../Tank/Projectile/Partical";
-import { gamer } from "../..";
-import ClientCamera from "../../Native/Camera";
-import AbstractBoss from "../Boss/AbstractBoss";
 /**
  * Only used for maze walls and nothing else.
  */
@@ -92,8 +89,7 @@ public multiplierdirect: number
         tickStar.call(rotator, tick);
     }
 
-    const rotator2 = new ObjectEntity(game)
-    rotator2.setParent(this)
+    const rotator2 = new GuardObject(this.game, this, 1, 1.5, 0, 0)  ;
     rotator2.styleData.values.color = Color.White
     rotator2.styleData.values.flags |= StyleFlags.showsAboveParent
     rotator2.styleData.opacity = 0
@@ -102,15 +98,12 @@ public multiplierdirect: number
     rotator2.tick = (tick: number) => {
         rotator2.physicsData.size = this.physicsData.size
       if(rotator2.physicsData.flags && PhysicsFlags.showsOnMap) rotator2.physicsData.flags   ^= PhysicsFlags.showsOnMap;
-         rotator2.physicsData.size = this.physicsData.size;
-         rotator2.physicsData.sides = this.physicsData.sides;
 
         if(this.lifetime <= 620){
             rotator2.styleData.opacity += 1/500
         }
         tickBase.call(rotator2, tick);
     }
-
 
     const rotator4 = new GuardObject(this.game, this, 1, 3, 0, 0)  
     rotator4.styleData.values.color = Color.kMaxColors
@@ -148,17 +141,6 @@ public multiplierdirect: number
                     entity.cameraEntity.cameraData.spawnTick = this.game.tick;
                     for (let i = 0; i < StatCount; ++i) entity.cameraEntity.cameraData.statLevels[i as Stat] = 0;
                     entity.cameraEntity.cameraData.statsAvailable = 45
-                    if(entity.cameraEntity instanceof ClientCamera){
-                        entity.cameraEntity.cameraData.isCelestial = true
-                        gamer.get("sanctuary")!.transferClient(entity.cameraEntity.client)
-                    }
-                }
-                if(entity.definition.flags.isCelestial){
-                    this.receiveKnockback(entities[i]);
-                    if(entity.cameraEntity instanceof ClientCamera){
-                        entity.cameraEntity.cameraData.flags |= CameraFlags.isCelestial
-                        gamer.get("sanctuary")!.transferClient(entity.cameraEntity.client)
-                    }
                 }
             }
         }
@@ -205,14 +187,8 @@ public multiplierdirect: number
             const entity = entities[i];
 
             if (!(entity instanceof LivingEntity)) continue; // Check if the target is living
-            if (entity instanceof AbstractShape || entity instanceof AbstractBoss){
-                let kbAngle: number;
-                let diffY = this.positionData.values.y - entity.positionData.values.y;
-                let diffX = this.positionData.values.x - entity.positionData.values.x;
-                // Prevents drone stacking etc
-                if (diffX === 0 && diffY === 0) kbAngle = Math.random() * util.PI2;
-                else {kbAngle = Math.atan2(diffY, diffX);
-                entity.addAcceleration( kbAngle, -2);}
+            if (entity instanceof AbstractShape || entity instanceof TankBody){
+
             }; // Check if the target is living
 
 
@@ -220,7 +196,7 @@ public multiplierdirect: number
 
             if (!(entity.relationsData.values.owner === null || !(entity.relationsData.values.owner instanceof ObjectEntity))) continue; // Don't target entities who have an object owner
             if (entity instanceof TankBody) {
-                if(entity.scoreData.score >= 146655){
+                if(!entity.definition.flags.isCelestial && entity.scoreData.score >= 146655){
                 }else{
                     let kbAngle: number;
                     let diffY = this.positionData.values.y - entity.positionData.values.y;

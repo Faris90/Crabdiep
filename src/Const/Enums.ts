@@ -51,10 +51,7 @@ export const enum Color {
     kMaxColors = 22,
     EnemyHeptagon = 23,
     EnemyOctagon = 24,
-    White = 25,
-    Vampire = 26,
-    EnemyNonagon = 27,
-    EnemyDecagon = 28
+    White = 25
 }
 
 /**
@@ -86,15 +83,8 @@ export const ColorsHexCode: Record<Color, number> = {
     [Color.kMaxColors]: 0x000000,
     [Color.EnemyHeptagon]: 0x38B764,
     [Color.EnemyOctagon]: 0x4A66BD,
-    [Color.White]: 0xFFFFFF,
-    [Color.Vampire]: 0x820D0D,
-    [Color.EnemyNonagon]: 0x5D275D,
-    [Color.EnemyDecagon]: 0x1A1C2C
-
-
+    [Color.White]: 0xFFFFFF
 }
-
-
 
 /**
  * The IDs for all the tanks, by name.
@@ -191,7 +181,6 @@ export const enum Tank {
     Saw           = 88,
     Landmine      = 89,
     autosmasher   = 90,
-    //old set
     Manufacturer  = 94,
     Roundabout    = 95,
     GattlingGun   = 96,
@@ -239,7 +228,6 @@ export const enum Tank {
     RubbleMaker   = 135,
     Fabricator    = 136,
     Orbiter       = 137,
-    //team chaos
     PsiTank       = 138,
     Barrager      = 139,
     MineLayer     = 140,
@@ -257,7 +245,7 @@ export const enum Tank {
     Overclocked   = 152,
     Hunterx       = 153,
     Fortress      = 154,
-    BlastBurn     = 155,
+    Blaster       = 155,
     Striker       = 156,
     Ejector       = 157,
     Flinger       = 158,
@@ -311,86 +299,8 @@ export const enum Tank {
     Comet         = 206,
     Abyss         = 207,
     Sprinkler     = 208, 
-    Crow          = 209,
-    Log           = 210,
-    Falcon        = 211,
-    Bouncer       = 212,
-    Curveball     = 213,
-    Flooder       = 214,
-    Hydra         = 215,
-    Outlet        = 216,
-    SideArm       = 217,
-    Plug          = 218,
-    Charger       = 219,
-    SplitTrapper  = 220,
-    MicroSmasher  = 221,
-    Capacitor     = 222,
-    Scrap         = 223,
-    Sidewinder    = 224,
-    Hommer        = 225,
-    Grower        = 226,
-    MachineSniper = 227,
-    TESTBED       = 228,
-    Summoner      = 229,
-    SteamRoller   = 230,
-    TripleGrower  = 231,
-    CrossFire     = 232,
-    Automated     = 233,
-    autoauto3     = 234,
-    Mecha         = 235,
-    Actuator      = 236,
-    Blaster       = 237,
-    Shotgun       = 238,
-    MegaCannon    = 239,
-    Inquisition   = 240,
-    ScatterShot   = 241,
-    ArrasPenta    = 242,
-    Heavy         = 243,
-    FunEnder      = 244,
-    Hell          = 245,
-    SwarmGunner   = 246,
-    Bullwark      = 247,
-    OverKill      = 248,
-    FlagShip      = 249,
-    TrueAmalgam   = 250,
-    Fission       = 251,
-    Mitosis       = 252,
-    auto1         = 253,
-    Conglom       = 254,
-    SPORN         = 255,
-    AutoSpawner   = 256,
-    Disperse      = 257,
-    Glider        = 258,
-    Energize      = 259,
-    Scrapper      = 260,
-    Leacher       = 261,
-    Vampire       = 262,
-    Restorer      = 263,
-    vampSmasher   = 264,
-    autoLeacher   = 265,
-    Trooper       = 266,
-    Commandbrid   = 267,
-    TheCroc       = 268,
-    Forge         = 269,
-    Bastion       = 270,
-    Spammer       = 271,
-    Balrog        = 272,
-    Pulsars       = 273,
-    Lunger        = 274,
-    Mothership    = 275,
-    Teleporter    = 276,
-    Belphegor     = 277,
-    QuadBuilder   = 278,
-    Rusher        = 279,
-    Jumpscarer    = 280,
-    Supernova     = 281,
-    Rift          = 282,
-    Multibox      = 283,
-    BEES          = 284,
-    BentBox       = 285,
-    Multiboxer    = 286,
-    Toolkit       = 287,
-    Shield        = 288
+    auto3Tank     = 209,
+    Mothership    = 2000
 }
 
 /**
@@ -491,8 +401,7 @@ export const enum TeamFlags {
 export const enum CameraFlags {
     usesCameraCoords      = 1 << 0,
     showingDeathStats     = 1 << 1,
-    gameWaitingStart      = 1 << 2,
-    isCelestial           = 1 << 2
+    gameWaitingStart      = 1 << 2
 }
 /**
  * The flag names for the tsyle field group.
@@ -527,8 +436,7 @@ export const enum PhysicsFlags {
     isBase                  = 1 << 6,
     _unknown1               = 1 << 7,
     canEscapeArena          = 1 << 8,
-    onlySameOwnerCollision2  = 1 << 9,
-    canWall  = 1 << 10,
+    onlySameOwnerCollision2  = 1 << 9
 }
 /**
  * The flag names for the barrel field group.

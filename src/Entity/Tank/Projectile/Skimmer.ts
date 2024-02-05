@@ -33,49 +33,49 @@ import Vector from "../../../Physics/Vector";
  */
 
 const RocketBarrelDefinition: BarrelDefinition = {
-    angle: Math.PI +  Math.PI / 5,
+    angle: 2.520255439879812,
     offset: 0,
-    size: 70,
-    width: 37.8,
-    delay: 0.5,
-    reload: 0.75,
-    recoil: 4,
+    size:  70,
+    width:  37.967,
+    delay: 0,
+    reload: 0.5,
+    recoil: 4.5,
     isTrapezoid: false,
     trapezoidDirection: 0,
     addon: null,
     bullet: {
         type: "bullet",
-        health: 0.6,
-        damage: 0.8,
-        speed: 0.8,
+        health: 0.4,
+        damage: 3 / 5,
+        speed: 1,
         scatterRate: 1,
-        lifeLength: 0.5,
+        lifeLength: 0.4,
         sizeRatio: 1,
-        absorbtionFactor: 0.5
+        absorbtionFactor: 1
     }
 };
 
 
 const RocketBarrelDefinition2: BarrelDefinition = {
-    angle: Math.PI -  Math.PI / 5,
+    angle: 3.7629298672997744,
     offset: 0,
     size: 70,
-    width: 37.8,
-    delay: 0.5,
-    reload: 0.75,
-    recoil: 4,
+    width:  37.967,
+    delay: 0,
+    reload: 0.5,
+    recoil: 4.5,
     isTrapezoid: false,
     trapezoidDirection: 0,
     addon: null,
     bullet: {
         type: "bullet",
-        health: 0.6,
-        damage: 0.8,
-        speed: 0.8,
+        health: 0.4,
+        damage: 3 / 5,
+        speed: 1,
         scatterRate: 1,
-        lifeLength: 0.5,
+        lifeLength: 0.4,
         sizeRatio: 1,
-        absorbtionFactor: 0.5
+        absorbtionFactor: 1
     }
 };
 /**
@@ -131,7 +131,7 @@ export default class Skimmer extends Bullet implements BarrelBase {
 
         if (this.deletionAnimation) return;
         // not fully accurate
-        this.inputs.flags |= InputFlags.leftclick;
+        if (tick - this.spawnTick >= this.tank.reloadTime) this.inputs.flags |= InputFlags.leftclick;
         // Only accurate on current version, but we dont want that
         // if (!Entity.exists(this.barrelEntity.rootParent) && (this.inputs.flags & InputFlags.leftclick)) this.inputs.flags ^= InputFlags.leftclick; 
 

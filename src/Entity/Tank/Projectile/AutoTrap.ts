@@ -34,7 +34,7 @@ const TrapBarrelDefinition1: BarrelDefinition = {
     angle: 0,
     offset: -17,
     size: 65,
-    width: 21,
+    width: 20,
     delay: 0.01,
     reload: 1,
     recoil: 0,
@@ -44,8 +44,8 @@ const TrapBarrelDefinition1: BarrelDefinition = {
     bullet: {
         type: "bullet",
         sizeRatio: 1,
-        health: 0.65,
-        damage: 0.35,
+        health: 0.75,
+        damage: 0.325,
         speed: 1,
         scatterRate: 2,
         lifeLength: 0.75,
@@ -56,7 +56,7 @@ const TrapBarrelDefinition2: BarrelDefinition = {
     angle: 0,
     offset: 17,
     size: 65,
-    width: 21,
+    width: 20,
     delay: 0.51,
     reload: 1,
     recoil: 0,
@@ -66,8 +66,8 @@ const TrapBarrelDefinition2: BarrelDefinition = {
     bullet: {
         type: "bullet",
         sizeRatio: 1,
-        health: 0.65,
-        damage: 0.35,
+        health: 0.75,
+        damage: 0.325,
         speed: 1,
         scatterRate: 2,
         lifeLength: 0.75,
@@ -79,7 +79,7 @@ const TrapBarrelDefinition3: BarrelDefinition = {
     angle: 0,
     offset: -20,
     size: 68,
-    width: 25.2,
+    width: 26,
     delay: 0.01,
     reload: 2.5,
     recoil: 0,
@@ -101,7 +101,7 @@ const TrapBarrelDefinition4: BarrelDefinition = {
     angle: 0,
     offset: 20,
     size: 68,
-    width: 25.2,
+    width: 26,
     delay: 0.51,
     reload: 2.5,
     recoil: 0,
@@ -144,8 +144,8 @@ export default class AutoTrap extends Bullet implements BarrelBase {
             const atuo = new AutoTurret(this, {
                 angle: 0,
                 offset: 0,
-                size: 85,
-                width: 46.2,
+                size: 80,
+                width: 45,
                 delay: 0.01,
                 reload: 5.5,
                 recoil: 0,
@@ -156,7 +156,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
                     type: "bullet",
                     sizeRatio: 1,
                     health: 0.8,
-                    damage: 1,
+                    damage: 1.25,
                     speed: 1.3,
                     scatterRate: 0.3,
                     lifeLength: 1,
@@ -174,7 +174,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
                 angle: 0,
                 offset: 0,
                 size: 65,
-                width: 33.6,
+                width: 35,
                 delay: 0.01,
                 reload: 0.75,
                 recoil: 0,
@@ -184,7 +184,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
                 bullet: {
                     type: "bullet",
                     sizeRatio: 1,
-                    health: 0.65,
+                    health: 0.75,
                     damage: 0.3,
                     speed: 1,
                     scatterRate: 3,
@@ -196,7 +196,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
                 atuo.positionData.values.angle = shootAngle
             //atuo.ai.passiveRotation = this.movementAngle
             atuo.styleData.values.flags |= StyleFlags.showsAboveParent;
-            atuo.ai.viewRange = 1000
+            atuo.ai.viewRange = 750
         }
         else if(tankDefinition && tankDefinition.id === Tank.Meteor){
             const atuo  = [new AutoTurret(this, [TrapBarrelDefinition1, TrapBarrelDefinition2])];
@@ -212,14 +212,14 @@ export default class AutoTrap extends Bullet implements BarrelBase {
                 atuo[0].positionData.values.angle = shootAngle
             //atuo.ai.passiveRotation = this.movementAngle
             atuo[0].styleData.values.flags |= StyleFlags.showsAboveParent;
-            atuo[0].ai.viewRange = 1000
+            atuo[0].ai.viewRange = 750
         }
         else if (tankDefinition && tankDefinition.id === Tank.Mechanic){
         const atuo = new AutoTurret(this, {
             angle: 0,
             offset: 0,
             size: 65,
-            width: 33.6,
+            width: 35,
             delay: 0.01,
             reload: 2,
             recoil: 0,
@@ -229,8 +229,8 @@ export default class AutoTrap extends Bullet implements BarrelBase {
             bullet: {
                 type: "bullet",
                 sizeRatio: 1,
-                health: 0.5,
-                damage: 0.3,
+                health: 0.65,
+                damage: 0.4,
                 speed: 1,
                 scatterRate: 1,
                 lifeLength: 0.75,
@@ -241,13 +241,13 @@ export default class AutoTrap extends Bullet implements BarrelBase {
             atuo.positionData.values.angle = shootAngle
         //atuo.ai.passiveRotation = this.movementAngle
         atuo.styleData.values.flags |= StyleFlags.showsAboveParent;
-        atuo.ai.viewRange = 1000
+        atuo.ai.viewRange = 700
     }else{
         const atuo = new AutoTurret(this, {
             angle: 0,
             offset: 0,
             size: 65,
-            width: 33.6,
+            width: 35,
             delay: 0.01,
             reload: 1.75,
             recoil: 0,
@@ -257,7 +257,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
             bullet: {
                 type: "bullet",
                 sizeRatio: 1,
-                health: 0.65,
+                health: 0.75,
                 damage: 0.5,
                 speed: 1,
                 scatterRate: 1,
@@ -269,7 +269,7 @@ export default class AutoTrap extends Bullet implements BarrelBase {
             atuo.positionData.values.angle = shootAngle
         //atuo.ai.passiveRotation = this.movementAngle
         atuo.styleData.values.flags |= StyleFlags.showsAboveParent;
-        atuo.ai.viewRange = 1000
+        atuo.ai.viewRange = 750
     }
         this.baseSpeed = (barrel.bulletAccel / 2) + 30 - Math.random() * barrel.definition.bullet.scatterRate;
         this.baseAccel = 0;

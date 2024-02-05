@@ -36,8 +36,8 @@ export default class Triangle extends AbstractShape {
         this.isShiny = shiny;
 
         if (shiny) {
-            this.scoreReward *= 8;
-            this.healthData.values.health = this.healthData.values.maxHealth *= 2;
+            this.scoreReward *= 100;
+            this.healthData.values.health = this.healthData.values.maxHealth *= 10;
         }
     }
 }

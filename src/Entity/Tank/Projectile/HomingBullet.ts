@@ -16,88 +16,46 @@
     along with this program. If not, see <https://www.gnu.org/licenses/>
 */
 
-import Barrel from "../Barrel";
-import Bullet from "./Bullet";
-
-import { InputFlags, PhysicsFlags, StyleFlags } from "../../../Const/Enums";
-import { TankDefinition } from "../../../Const/TankDefinitions";
-import { Entity } from "../../../Native/Entity";
-import { AI, AIState, Inputs } from "../../AI";
-import TankBody, { BarrelBase } from "../TankBody";
-import ObjectEntity from "../../Object";
-import { VectorAbstract } from "../../../Physics/Vector";
 import LivingEntity from "../../Live";
+import Barrel from "../Barrel";
+
+import { HealthFlags, PositionFlags, PhysicsFlags, Stat, StyleFlags, InputFlags } from "../../../Const/Enums";
+import { TankDefinition } from "../../../Const/TankDefinitions";
+import TankBody, { BarrelBase } from "../TankBody";
+import { Entity, EntityStateFlags } from "../../../Native/Entity";
+import ObjectEntity from "../../Object";
+import Bullet from "./Bullet";
+import { AI, AIState, Inputs } from "../../AI";
+import { VectorAbstract } from "../../../Physics/Vector";
 
 /**
- * The drone class represents the drone (projectile) entity in diep.
+ * The bullet class represents the bullet entity in diep.
  */
 export default class HomingBullet extends Bullet {
-    /** The AI of the drone (for AI mode) */
-
-    /** The drone's radius of resting state */
-    public static MAX_RESTING_RADIUS = 400 ** 2;
-    public state = AIState.idle;
+    /** The barrel that the bullet is being shot from. */
     public inputs: Inputs = new Inputs();
-
-    /** Used let the drone go back to the player in time. */
-    private restCycle = true;
-
-    /** Cached prop of the definition. */
-    protected canControlDrones: boolean;
     public target: ObjectEntity | null = null;
     public targetFilter: (possibleTargetPos: VectorAbstract) => boolean;
     public viewRange: number
     private _creationTick: number;
-    public movementSpeed = 1;
-    /** The speed at which the ai can reach the target. */
-    public aimSpeed = 1;
-    /** If the AI should predict enemy's movements, and aim accordingly. */
-    public doAimPrediction: boolean = false;
-    private _findTargetInterval: number = 2;
-    public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
-        super(barrel, tank, tankDefinition, shootAngle);
+    public state = AIState.idle;
+    public movementSpeed = 10000;
+    public static DECTECTRANGE = 140 ** 2;
 
-        const bulletDefinition = barrel.definition.bullet;
-        this.viewRange = 900
+    public aimSpeed = 1000;
+    /** If the AI should predict enemy's movements, and aim accordingly. */
+    public doAimPrediction: boolean = true;
+    private _findTargetInterval: number = 2;
+    public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number, parent?: ObjectEntity) {
+        super(barrel, tank, tankDefinition, shootAngle);
+        this.usePosAngle = true;
+        this.viewRange = 300 * tank.sizeFactor
         this._creationTick = this.game.tick;
         this.targetFilter = () => true;
-        this.usePosAngle = true;
-        
-        //this.ai = new AI(this);
-        this.viewRange = 900 * tank.sizeFactor;
-        //this.ai.targetFilter = (targetPos) => (targetPos.x - this.positionData.x) ** 2 + (targetPos.y - this.positionData.y) ** 2 <= this.ai.viewRange ** 2; // (1000 ** 2) 1000 radius
-        this.canControlDrones = typeof this.barrelEntity.definition.canControlDrones === 'boolean' && this.barrelEntity.definition.canControlDrones;
-        this.physicsData.values.sides = bulletDefinition.sides ?? 1;
-        if (this.physicsData.values.flags & PhysicsFlags.noOwnTeamCollision) this.physicsData.values.flags ^= PhysicsFlags.noOwnTeamCollision;
-        this.physicsData.values.flags |= PhysicsFlags.onlySameOwnerCollision;
-        this.styleData.values.flags &= ~StyleFlags.hasNoDmgIndicator;
+       // this.movementSpeed = this.aimSpeed = this.baseAccel;
 
-        if (barrel.definition.bullet.lifeLength !== -1) {
-            this.lifeLength = 88 * barrel.definition.bullet.lifeLength;
-        } else {
-            this.lifeLength = Infinity;
-        }
-        this.deathAccelFactor = 1;
-
-        this.physicsData.values.pushFactor = 2;
-        this.physicsData.values.absorbtionFactor = bulletDefinition.absorbtionFactor;
-
-        this.baseSpeed /= 2
-
-
-        barrel.droneCount += 1;
-        this.movementSpeed = this.aimSpeed = this.baseAccel;
-
-        //this.ai.movementSpeed = this.ai.aimSpeed = this.baseAccel;
     }
 
-    /** Extends LivingEntity.destroy - so that the drone count decreases for the barrel. */
-    public destroy(animate=true) {
-        if (!animate) this.barrelEntity.droneCount -= 1;
-
-        super.destroy(animate);
-    }
-    
 
     public findTarget(tick: number) {
         // If there's a target interval, wait a cycle till looking for new target
@@ -140,7 +98,6 @@ export default class HomingBullet extends Bullet {
             if (!(entity.relationsData.values.owner === null || !(entity.relationsData.values.owner instanceof ObjectEntity))) continue; // Don't target entities who have an object owner
 
             if (entity.relationsData.values.team === team || entity.physicsData.values.sides === 0) continue;
-            if (entity.styleData.opacity < 0.5) continue;
 
             if (!this.targetFilter(entity.positionData.values)) continue; // Custom check
 
@@ -230,49 +187,31 @@ export default class HomingBullet extends Bullet {
     protected tickMixin(tick: number) {
         super.tick(tick);
     }
-
     public tick(tick: number) {
-        super.tick(tick);
-        const usingAI = !this.canControlDrones || this.tank.inputs.deleted || (!this.tank.inputs.attemptingShot() && !this.tank.inputs.attemptingRepel());
-        const inputs = !usingAI ? this.tank.inputs : this.inputs;
-
-            this.inputs = new Inputs();
-            const target = this.findTarget(tick);
-
+        const target = this.findTarget(tick);
         if (!target) {
-            this.inputs.flags = 0;
             this.state = AIState.idle;
             const base = this.baseAccel;
 
-            // still a bit inaccurate, works though
-
-            //this.tickMixin(tick);
-
             this.baseAccel = base;
 
+
+        this.tickMixin(tick);
+            
             return;
-        } else if(target){
+            
+        }
+        if(target){
             this.state = AIState.hasTarget;
-            this.inputs.flags |= InputFlags.leftclick;
-                this.aimAt(target);
-                //this.positionData.angle = Math.atan2(inputs.mouse.y - this.positionData.values.y, inputs.mouse.x - this.positionData.values.x);
-                this.positionData.angle = Math.atan2(inputs.mouse.y - this.positionData.values.y, inputs.mouse.x - this.positionData.values.x);
-    
-    
-               // this.tickMixin(tick);
-    
-    
-                return;
+            //this.aimAt(target);
+            const dist = (target.positionData.y - this.positionData.y) ** 2 + (target.positionData.x - this.positionData.x) ** 2
+            if (dist > HomingBullet.DECTECTRANGE / 4) { // Half
+
+            this.positionData.angle = Math.atan2(target.positionData.y - this.positionData.y, target.positionData.x - this.positionData.x);
+            this.addAcceleration(Math.atan2(target.positionData.y - this.positionData.y, target.positionData.x - this.positionData.x), this.baseSpeed/4)
         }
+    }
+        this.tickMixin(tick);
 
-
-        
-        if (this.canControlDrones && inputs.attemptingRepel()) {
-            this.positionData.angle += Math.PI; 
-        }
-
-        // So that switch tank works, as well as on death
-
-        //this.tickMixin(tick);
     }
 }

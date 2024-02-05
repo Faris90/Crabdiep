@@ -36,7 +36,7 @@ const GuardianSpawnerDefinition: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 80,
-    width: 65.1,
+    width: 65,
     delay: 0,
     reload: 8,
     recoil: 0,
@@ -84,7 +84,7 @@ const GuardianSpawnerDefinition2: BarrelDefinition = {
 const GuardianSpawnerDefinition3: BarrelDefinition = {
     angle: 0,
     offset: 0,
-    size: 249.9,
+    size: 250,
     width: 120,
     delay: 0.5,
     reload: 8,
@@ -144,7 +144,7 @@ export default class WepPentagon extends Pentagon implements BarrelBase {
         const atuo = new AutoTurret(this, {
             angle: 0,
             offset: 0,
-            size: 151.2,
+            size: 150,
             width: 100,
             delay: 0,
             reload: 13,
@@ -210,7 +210,7 @@ export default class WepPentagon extends Pentagon implements BarrelBase {
                 angle: 0,
                 offset: 0,
                 size: 80,
-                width: 42,
+                width: 43.5,
                 delay: 0,
                 reload: 3,
                 recoil: 0,
@@ -256,8 +256,8 @@ export default class WepPentagon extends Pentagon implements BarrelBase {
         this.scoreReward = isAlpha ? 30000 : 1500;
         
         if (shiny) {
-            this.scoreReward *= 20;
-            this.healthData.values.health = this.healthData.values.maxHealth *= 5;
+            this.scoreReward *= 100;
+            this.healthData.values.health = this.healthData.values.maxHealth *= 10;
         }
     }
 
