@@ -31,8 +31,8 @@ import { BarrelBase } from "../TankBody";
 const SkimmerBarrelDefinition: BarrelDefinition = {
     angle: Math.PI / 2,
     offset: 0,
-    size: 66.526,
-    width: 49.578,
+    size: 60,
+    width: 42,
     delay: 0,
     reload: 1.5,
     recoil: 0,
@@ -103,8 +103,6 @@ export default class TrapSpinner extends Bullet implements BarrelBase {
             }
         }(this, s2Definition);
 
-        s1.styleData.values.color = this.styleData.values.color;
-        s2.styleData.values.color = this.styleData.values.color;
 
         skimmerBarrels.push(s1, s2);
 

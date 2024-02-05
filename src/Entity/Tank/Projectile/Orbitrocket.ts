@@ -26,6 +26,7 @@ import { BarrelDefinition, TankDefinition } from "../../../Const/TankDefinitions
 import { BarrelBase } from "../TankBody";
 import AutoTurret from "../AutoTurret";
 import Orbit from "./Orbit";
+import ObjectEntity from "../../Object";
 
 /**
  * Barrel definition for the rocketeer rocket's barrel.
@@ -35,7 +36,7 @@ const RocketBarrelDefinition: BarrelDefinition = {
     angle: 0,
     offset: 0,
     size: 85,
-    width: 55,
+    width: 50.4,
     delay: 0,
     reload: 1,
     recoil: 0,
@@ -44,15 +45,16 @@ const RocketBarrelDefinition: BarrelDefinition = {
     addon: null,
     bullet: {
         type: "bullet",
-        health: 0.6,
-        damage: 0.7,
-        speed: 1.25,
+        health: 0.55,
+        damage: 0.5,
+        speed: 1,
         scatterRate: 1,
-        lifeLength: 0.5,
+        lifeLength: 1,
         sizeRatio: 1,
         absorbtionFactor: 1
     }
 };
+
 
 /**
  * Represents all rocketeer rockets in game.
@@ -71,8 +73,9 @@ export default class Orbitrocket extends Orbit implements BarrelBase {
     public inputs = new Inputs();
 public change = true
 
-    public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
-        super(barrel, tank, tankDefinition, shootAngle);
+    public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number, mode:number, parent?: ObjectEntity) {
+        super(barrel, tank, tankDefinition, shootAngle,mode);
+        this.parent = parent ?? tank;
         
         this.cameraEntity = tank.cameraEntity;
 

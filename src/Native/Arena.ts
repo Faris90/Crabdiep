@@ -27,7 +27,7 @@ import { ArenaGroup, TeamGroup } from "./FieldGroups";
 import { Entity } from "./Entity";
 import { Color, ArenaFlags, Tank, ValidScoreboardIndex } from "../Const/Enums";
 import { PI2, saveToLog } from "../util";
-import { TeamGroupEntity } from "../Entity/Misc/TeamEntity";
+import { TeamEntity, TeamGroupEntity } from "../Entity/Misc/TeamEntity";
 import Client from "../Client";
 import AbstractBoss from "../Entity/Boss/AbstractBoss";
 import Guardian from "../Entity/Boss/Guardian";
@@ -71,10 +71,12 @@ export default class ArenaEntity extends Entity implements TeamGroupEntity {
 	/** Whether or not the arena allows new players to spawn. */
 	public state: number = ArenaState.OPEN;
 	public shapeScoreRewardMultiplier: number = 1;
+	public shapeHeathMultiplier: number = 1;
+
 
 	/** The current boss spawned into the game */
 	public boss: AbstractBoss | null = null;
-
+	public maxtanklevel: number
 	/** Controller of all shapes in the arena. */
 	protected shapes = new ShapeManager(this);
 
@@ -83,7 +85,7 @@ export default class ArenaEntity extends Entity implements TeamGroupEntity {
 
 	public constructor(game: GameServer) {
 		super(game);
-
+		this.maxtanklevel = 45
 		this.updateBounds(this.width = 22300, this.height = 22300);
 		this.arenaData.values.topY = -this.height / 2;
 		this.arenaData.values.bottomY = this.height / 2;
@@ -179,6 +181,7 @@ export default class ArenaEntity extends Entity implements TeamGroupEntity {
 	 */
 	public close() {
 		for (const client of this.game.clients) {
+			if(client.camera?.teamData)
 			client.notify("Arena closed: No players can join", 0xFF0000, -1);
 		}
 
@@ -204,23 +207,24 @@ export default class ArenaEntity extends Entity implements TeamGroupEntity {
 
 	/** Spawns the boss into the arena */
 	protected spawnBoss() {
-		const rand = Math.random();
-		if (rand < .25) {
-	//	const TBoss = [Fortress,Pyromancer, Mecha, Titan]
-	const TBoss = Titan
+		if(this.game.gamemode == "ball" || this.game.gamemode == "crossroads" || this.game.gamemode == "sanctuary"){}else{
+			const rand = Math.random();
+			if (rand < .25) {
+		const TBoss = [Fortress,Pyromancer, Mecha, Titan]
 
-		//const TBoss = [Mecha]
-		//[~~(Math.random() * 4)];
-		
-		this.boss = new TBoss(this.game);
-	}else{
-		//const TBoss = [Guardian, Protector,Beholder, Summoner, FallenOverlord, FallenPuker, FallenBooster, Defender]
-		//const TBoss = [Mecha]
-	const TBoss = Titan
 
-		//[~~(Math.random() * 8)];
-		
-		this.boss = new TBoss(this.game);
+			//const TBoss = [Mecha]
+			[~~(Math.random() * 4)];
+			
+			this.boss = new TBoss(this.game);
+		}else{
+			const TBoss = [Guardian, Protector,Beholder, Summoner, FallenOverlord, FallenPuker, FallenBooster, Defender]
+			//const TBoss = [Mecha]
+
+			[~~(Math.random() * 8)];
+			
+			this.boss = new TBoss(this.game);
+		}
 	}
 }
 

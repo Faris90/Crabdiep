@@ -76,14 +76,14 @@ export default class Hive extends Bullet {
             this.lifeLength = 88 * barrel.definition.bullet.lifeLength;
         } else {
             this.lifeLength = Infinity;
-            if (this.physicsData.values.flags & PhysicsFlags.canEscapeArena) this.physicsData.values.flags ^= PhysicsFlags.canEscapeArena;
         }
         this.deathAccelFactor = 1;
 
         this.physicsData.values.pushFactor = 2;
         this.physicsData.values.absorbtionFactor = bulletDefinition.absorbtionFactor;
 
-        this.baseSpeed /= 3;
+        this.baseSpeed /= 2
+
 
         barrel.droneCount += 1;
         this.movementSpeed = this.aimSpeed = this.baseAccel;
@@ -140,6 +140,7 @@ export default class Hive extends Bullet {
             if (!(entity.relationsData.values.owner === null || !(entity.relationsData.values.owner instanceof ObjectEntity))) continue; // Don't target entities who have an object owner
 
             if (entity.relationsData.values.team === team || entity.physicsData.values.sides === 0) continue;
+            if (entity.styleData.opacity < 0.5) continue;
 
             if (!this.targetFilter(entity.positionData.values)) continue; // Custom check
 

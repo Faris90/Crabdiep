@@ -32,7 +32,7 @@ import { BarrelBase } from "../TankBody";
     angle: 0,
     offset: 0,
     size: 80,
-    width: 40,
+    width: 42,
     delay: 0,
     reload: 1,
     recoil: 1.35,
@@ -110,7 +110,7 @@ export default class MiniMinion extends Drone implements BarrelBase {
             if (dist < MiniMinion.FOCUS_RADIUS / 4) { // Half
                 this.movementAngle = this.positionData.values.angle + Math.PI;
             } else if (dist < MiniMinion.FOCUS_RADIUS) {
-                this.movementAngle = this.positionData.values.angle;
+                this.movementAngle = this.positionData.values.angle
             } else this.movementAngle = this.positionData.values.angle;
         }
 

@@ -50,6 +50,10 @@ export const ColorsTeamName: { [K in Color]?: string } = {
     [Color.EnemyHeptagon]: "HEPTAGON",
     [Color.EnemyOctagon]: "OCTAGON",
     [Color.White]: "WHITE",
+    [Color.Vampire]: "VAMPIRE",
+    [Color.EnemyNonagon]: "NONAGOM",
+    [Color.EnemyDecagon]: "DECAGON",
+
 }
 
 export class TeamEntity extends Entity implements TeamGroupEntity {

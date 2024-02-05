@@ -35,24 +35,25 @@ const RocketBarrelDefinition: BarrelDefinition = {
     angle: Math.PI,
     offset: 0,
     size: 70,
-    width: 46.472,
+    width: 37.8 ,
     delay: 0,
-    reload: 0.3,
-    recoil: 4.5,
+    reload: 0.5,
+    recoil: 5,
     isTrapezoid: false,
     trapezoidDirection: 0,
     addon: null,
     bullet: {
         type: "bullet",
-        health: 0.4,
-        damage: 4 / 5,
-        speed: 1.5,
+        health: 0.6,
+        damage: 0.8,
+        speed: 0.8,
         scatterRate: 1,
-        lifeLength: 0.35,
+        lifeLength: 0.5,
         sizeRatio: 1,
         absorbtionFactor: 1
     }
 };
+
 
 /**
  * Represents all rocketeer rockets in game.

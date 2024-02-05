@@ -58,8 +58,8 @@ export default class AutoDrone extends Bullet  implements BarrelBase{
             const atuo = new AutoTurret(this, {
                 angle: 0,
                 offset: 0,
-                size: 83,
-                width: 48,
+                size: 85,
+                width: 46.2,
                 delay: 0.01,
                 reload: 3,
                 recoil: 0,
@@ -70,13 +70,14 @@ export default class AutoDrone extends Bullet  implements BarrelBase{
                     type: "bullet",
                     sizeRatio: 1,
                     health: 1.15,
-                    damage: 1.2,
+                    damage: 0.8,
                     speed: 0.9,
                     scatterRate: 1,
                     lifeLength: 0.75,
                     absorbtionFactor: 0.1
                 }
             });
+                atuo.positionData.values.angle = shootAngle
                 atuo.baseSize *= 1.35
               //  atuo.positionData.values.angle = shootAngle
                 atuo.ai.viewRange = 1500}else{
@@ -85,7 +86,7 @@ export default class AutoDrone extends Bullet  implements BarrelBase{
                         angle: 0,
                         offset: 0,
                         size: 65,
-                        width: 35,
+                        width: 33.6,
                         delay: 0.01,
                         reload: 1.2,
                         recoil: 0,
@@ -95,7 +96,7 @@ export default class AutoDrone extends Bullet  implements BarrelBase{
                         bullet: {
                             type: "bullet",
                             sizeRatio: 1,
-                            health: 1,
+                            health: 0.8,
                             damage: 0.45,
                             speed: 1.2,
                             scatterRate: 1,
@@ -105,7 +106,8 @@ export default class AutoDrone extends Bullet  implements BarrelBase{
                     });
                         atuo.baseSize *= 1.25
                       //  atuo.positionData.values.angle = shootAngle
-                        atuo.ai.viewRange = 1000
+                atuo.positionData.values.angle = shootAngle
+                atuo.ai.viewRange = 1000
                 }
         this.sizeFactor = this.physicsData.values.size / 50;
         this.ai = new AI(this);

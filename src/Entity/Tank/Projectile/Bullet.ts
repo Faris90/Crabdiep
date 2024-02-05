@@ -24,6 +24,8 @@ import { TankDefinition } from "../../../Const/TankDefinitions";
 import { BarrelBase } from "../TankBody";
 import { EntityStateFlags } from "../../../Native/Entity";
 import ObjectEntity from "../../Object";
+import { sign } from "crypto";
+import { PI2 } from "../../../util";
 
 /**
  * The bullet class represents the bullet entity in diep.
@@ -42,7 +44,7 @@ export default class Bullet extends LivingEntity {
     /** Life length in ticks before the bullet dies. */
     protected lifeLength = 0;
     /** Angle the projectile is shot at. */
-    protected movementAngle = 0;
+    public movementAngle = 0;
     /** Definition of the tank (if existant) shooting the bullet. */
     protected tankDefinition: TankDefinition | null = null;
     /** Whether or not to use .shootAngle or .position.angle. */
@@ -100,8 +102,8 @@ export default class Bullet extends LivingEntity {
 
         const {x, y} = tank.getWorldPosition();
         
-        this.positionData.values.x = x + (Math.cos(shootAngle) * barrel.physicsData.values.size) - Math.sin(shootAngle) * barrel.definition.offset * sizeFactor;
-        this.positionData.values.y = y + (Math.sin(shootAngle) * barrel.physicsData.values.size) + Math.cos(shootAngle) * barrel.definition.offset * sizeFactor;
+        this.positionData.values.x = x + (Math.cos(shootAngle) * barrel.physicsData.values.size) - Math.sin(shootAngle) * barrel.definition.offset * sizeFactor + Math.cos(shootAngle) * (barrel.definition.distance || 0);
+        this.positionData.values.y = y + (Math.sin(shootAngle) * barrel.physicsData.values.size) + Math.cos(shootAngle) * barrel.definition.offset * sizeFactor + Math.sin(shootAngle) * (barrel.definition.distance || 0);
         this.positionData.values.angle = shootAngle;
     }
 
@@ -115,9 +117,9 @@ export default class Bullet extends LivingEntity {
 
     public tick(tick: number) {
         super.tick(tick);
-
         if (tick === this.spawnTick + 1) this.addAcceleration(this.movementAngle, this.baseSpeed);
         else this.maintainVelocity(this.usePosAngle ? this.positionData.values.angle : this.movementAngle, this.baseAccel);
+            
 
         if (tick - this.spawnTick >= this.lifeLength) this.destroy(true);
         // TODO(ABC):

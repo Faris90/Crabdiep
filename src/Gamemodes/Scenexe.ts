@@ -16,15 +16,22 @@
     along with this program. If not, see <https://www.gnu.org/licenses/>
 */
 
+import Client from "../Client";
 import { PhysicsFlags, Color, StyleFlags, Tank, PositionFlags } from "../Const/Enums";
+import AiTank from "../Entity/Misc/AiTank";
 import BlackHole from "../Entity/Misc/BlackHole";
+import BlackHoleAlt from "../Entity/Misc/BlackHoleAlt";
+import TeamBase from "../Entity/Misc/TeamBase";
 import { TeamEntity } from "../Entity/Misc/TeamEntity";
 import AbstractShape from "../Entity/Shape/AbstractShape";
 import Crasher from "../Entity/Shape/Crasher";
+import Decagon from "../Entity/Shape/Decagon";
 import Heptagon from "../Entity/Shape/Heptagon";
 import Hexagon from "../Entity/Shape/Hexagon";
 import ShapeManager from "../Entity/Shape/Manager";
+import Nonagon from "../Entity/Shape/Nonagon";
 import Octagon from "../Entity/Shape/Octagon";
+import Peacekeeper from "../Entity/Shape/Peacekeeper";
 import Pentagon from "../Entity/Shape/Pentagon";
 import { Sentry } from "../Entity/Shape/Sentry";
 import Square from "../Entity/Shape/Square";
@@ -32,12 +39,18 @@ import Triangle from "../Entity/Shape/Triangle";
 import WepPentagon from "../Entity/Shape/WepPentagon";
 import WepSquare from "../Entity/Shape/WepSquare";
 import WepTriangle from "../Entity/Shape/WepTriangle";
+import TankBody from "../Entity/Tank/TankBody";
 import GameServer from "../Game";
 import ArenaEntity from "../Native/Arena";
 
 /**
  * Scenexe Gamemode Arena
  */
+const arenaSize = 10000;
+const baseWidth = 2230;
+const domBaseSize = baseWidth / 2;
+const CELL_SIZE = 635;
+const GRID_SIZE = 40;
 
 class CustomShapeManager extends ShapeManager {
         protected spawnShape(): AbstractShape {
@@ -48,15 +61,33 @@ class CustomShapeManager extends ShapeManager {
             const leftX = this.arena.arenaData.values.leftX;
             const rand = Math.random();
     
-            if (Math.max(x, y) < rightX / 3 && Math.min(x, y) > leftX / 3) {
+            if (Math.max(x, y) < rightX / 4 && Math.min(x, y) > leftX / 4) {
                 // Pentagon Nest
-                if(rand < 0.08){
+                if(rand < 0.02){
+                    shape = new Peacekeeper(this.game);
+        
+                    shape.positionData.values.x = x;
+                    shape.positionData.values.y = y;
+                    shape.relationsData.values.owner = shape.relationsData.values.team = this.arena;}
+               else if(rand < 0.12){
+                    shape = new Decagon(this.game, Math.random() <= 0.1,Math.random() < 0.005);
+        
+                    shape.positionData.values.x = x;
+                    shape.positionData.values.y = y;
+                    shape.relationsData.values.owner = shape.relationsData.values.team = this.arena;}
+               else if(rand < 0.27){
+                    shape = new Nonagon(this.game, Math.random() <= 0.1,Math.random() < 0.005);
+        
+                    shape.positionData.values.x = x;
+                    shape.positionData.values.y = y;
+                    shape.relationsData.values.owner = shape.relationsData.values.team = this.arena;}
+               else if(rand < 0.42){
                     shape = new Octagon(this.game, Math.random() <= 0.1,Math.random() < 0.005);
         
                     shape.positionData.values.x = x;
                     shape.positionData.values.y = y;
                     shape.relationsData.values.owner = shape.relationsData.values.team = this.arena;}
-              else if(rand < 0.3){
+              else if(rand < 0.62){
                 shape = new Heptagon(this.game, Math.random() <= 0.1,Math.random() < 0.005);
     
                 shape.positionData.values.x = x;
@@ -106,21 +137,41 @@ class CustomShapeManager extends ShapeManager {
 }
 
 export default class Scenexe extends ArenaEntity {
-    public timer = 1600
+    public timer = 600
     public celestial = new TeamEntity(this.game, Color.EnemyCrasher)
 	protected shapes: ShapeManager = new CustomShapeManager(this);
-
     public constructor(game: GameServer) {
         super(game);
-        this.shapeScoreRewardMultiplier = 2.5;
-        this.updateBounds(30000, 30000);
+        //this.shapeScoreRewardMultiplier = 2;
+        this.maxtanklevel = 60
+        this.updateBounds(24000, 24000);
     }
     public tick(tick: number) {
         super.tick(tick);
         this.timer--
         if(this.timer <= 0){
-            new BlackHole(this.game, this.celestial)
-            this.timer = 1600
+            //new AiTank(this.game)
+            const rand = Math.random();
+            if(rand > 0.5){
+                new BlackHole(this.game, this.celestial)
+            }else{            
+                new BlackHoleAlt(this.game, this.celestial, "crossroads",3)
+            }
+            this.timer = 600
+        }
+    }
+    public spawnPlayer(tank: TankBody, client: Client) {
+        tank.positionData.values.y = arenaSize * Math.random() - arenaSize;
+
+        const xOffset = (Math.random() - 0.5) * baseWidth;
+        if (client.camera){
+            if(client.camera.cameraData.isCelestial == true){
+                tank.relationsData.values.team = this.celestial;
+                tank.definition.flags.isCelestial = true;
+                tank.styleData.color = Color.EnemyCrasher
+                client.camera.relationsData.team = tank.relationsData.values.team;
+                tank.setTank(tank.currentTank)
+            }
         }
     }
 }

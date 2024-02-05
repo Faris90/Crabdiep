@@ -32,17 +32,17 @@ const SkimmerBarrelDefinition: BarrelDefinition = {
     angle: Math.PI / 2,
     offset: 0,
     size: 66.526,
-    width: 49.578,
+    width: 37.8,
     delay: 0,
-    reload: 0.25,
+    reload: 0.35,
     recoil: 0,
     isTrapezoid: false,
     trapezoidDirection: 0,
     addon: null,
     bullet: {
         type: "bullet",
-        health: 0.3,
-        damage: 2 / 5,
+        health: 0.4,
+        damage: 3 / 5,
         speed: 0.8,
         scatterRate: 1,
         lifeLength: 0.25,
@@ -102,9 +102,6 @@ export default class Spinner extends Bullet implements BarrelBase {
                 //this.physicsData.width = this.definition.width
             }
         }(this, s2Definition);
-
-        s1.styleData.values.color = this.styleData.values.color;
-        s2.styleData.values.color = this.styleData.values.color;
 
         skimmerBarrels.push(s1, s2);
 

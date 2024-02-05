@@ -18,7 +18,7 @@
 
 import Barrel from "../Barrel";
 import Bullet from "./Bullet";
-import { PhysicsFlags, Stat, StyleFlags } from "../../../Const/Enums";
+import { PhysicsFlags, Stat, StyleFlags, Tank } from "../../../Const/Enums";
 
 import { TankDefinition } from "../../../Const/TankDefinitions";
 import { BarrelBase } from "../TankBody";
@@ -28,9 +28,9 @@ export default class Flame extends Bullet {
     public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
         super(barrel, tank, tankDefinition, shootAngle);
         this.sized = this.physicsData.values.size
-        this.baseSpeed *= 0.8;
-        
-        this.physicsData.values.sides = 1;
+        this.baseSpeed *= 0.4;
+        this.baseAccel *= 0.4;
+        this.physicsData.values.sides = 4
         this.physicsData.values.absorbtionFactor = this.physicsData.values.pushFactor = 0;
 
         const statLevels = tank.cameraEntity.cameraData?.values.statLevels.values;
@@ -41,12 +41,33 @@ export default class Flame extends Bullet {
         this.lifeLength = bulletDefinition.lifeLength * 6 * ((1.5 * bulletPenetration)/5 + 2);
 
     }
-
+    public destroy(animate=true) {
+        if (this.deletionAnimation) {
+            this.deletionAnimation.frame = 0;
+        }
+        if (this.deletionAnimation) {
+            this.deletionAnimation.frame = 0;
+            this.styleData.opacity = 0;
+        }
+    super.destroy(animate);
+}
     public tick(tick: number) {
         super.tick(tick);
-        if (this.physicsData.size < this.sized * 8){
-        this.physicsData.size += this.sized/8}
-
+        if (this.tankDefinition && this.tankDefinition.id === Tank.Pyro){
+            if (this.physicsData.size < this.sized * 12){
+                this.physicsData.size += this.sized/3
+                this.styleData.opacity -= 1 / 36
+                this.baseAccel *= 1.05
+                this.baseSpeed *= 1.05
+            }
+        }else{
+            if (this.physicsData.size < this.sized * 10){
+                this.baseAccel *= 1.05
+                this.baseSpeed *= 1.05
+                this.physicsData.size += this.sized / 5
+                this.styleData.opacity -= 1 / 50
+            }
+        }
         //this.damageReduction += 1 / 25;
         //this.styleData.opacity -= 1 / 25;
     }

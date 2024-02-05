@@ -32,7 +32,7 @@ const GuardianSpawnerDefinition: BarrelDefinition = {
     angle: Math.PI,
     offset: 0,
     size: 90,
-    width: 57,
+    width: 56.7,
     delay: 0,
     reload: 2,
     recoil: 0,
@@ -56,7 +56,7 @@ const GuardianSpawnerDefinition2: BarrelDefinition = {
     angle: Math.PI,
     offset: 0,
     size: 90,
-    width: 60,
+    width: 60.9,
     delay: 0,
     reload: 6,
     recoil: 0,
@@ -105,8 +105,8 @@ export default class WepSquare extends Square implements BarrelBase {
         this.isShiny = shiny;
 
         if (shiny) {
-            this.scoreReward *= 100;
-            this.healthData.values.health = this.healthData.values.maxHealth *= 10;
+            this.scoreReward *= 20;
+            this.healthData.values.health = this.healthData.values.maxHealth *= 5;
         }
 
 

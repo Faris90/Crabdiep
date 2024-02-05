@@ -37,6 +37,7 @@ class DeletionAnimation {
 
     /** Animates the death animation. Called by the owner's internal tick. */
     public tick() {
+        this.entity.deathanim = true
         if (this.frame === -1) throw new Error("Animation failed. Entity should be gone by now");
 
         switch (this.frame) {
@@ -109,12 +110,21 @@ export default class ObjectEntity extends Entity {
     public restLength: number;
     public seg: number;
     public MAXORBS: number
+    public MAXDRONES: number
     public OrbCount: number
+    public OrbCount2: number
+    public DroneCount: number
+    public deathanim: boolean
+    public borscount = new Array(100);
     public cangoThroughRope: boolean;
     public constructor(game: GameServer) {
         super(game);
+        this.deathanim = false
+        this.MAXDRONES = 0
         this.MAXORBS = 0
         this.OrbCount = 0
+        this.OrbCount2 = 0
+        this.DroneCount = 0
         this.restLength = 0
         this.forcemulti = 1
         this.isAffectedByRope = false
@@ -240,7 +250,9 @@ export default class ObjectEntity extends Entity {
                 // this is a bit off still. k
                 this.velocity.setPosition(this.positionData.values);
                 this.setVelocity(0, 0);
-                this.destroy(true) // Kills off bullets etc
+                setTimeout(() => {
+                    this.destroy(true) // Kills off bullets etc
+                }, 1);
                 return;
             } else {
                 const relA = Math.cos(kbAngle + entity.positionData.values.angle) / entity.physicsData.values.size;
@@ -265,7 +277,7 @@ export default class ObjectEntity extends Entity {
     }
 
     /** Detects collisions. */
-    protected findCollisions() {
+    public findCollisions() {
         if (this.cachedTick === this.game.tick) return this.cachedCollisions;
         
         this.cachedTick = this.game.tick;
@@ -300,6 +312,18 @@ export default class ObjectEntity extends Entity {
             if (entity.physicsData.values.sides === 2 && this.physicsData.values.sides === 2) {
                 // in Diep.io source code, rectangles do not support collisions
                 // hence, they are not supported here
+                const rect1Left = this.positionData.values.x - this.physicsData.values.width / 2;
+                const rect1Right = this.positionData.values.x + this.physicsData.values.width / 2;
+                const rect1Top = this.positionData.values.y - this.physicsData.values.size / 2;
+                const rect1Bottom = this.positionData.values.y + this.physicsData.values.size / 2;
+                const rect2Left = entity.positionData.values.x - entity.physicsData.values.width / 2;
+                const rect2Right = entity.positionData.values.x + entity.physicsData.values.width / 2;
+                const rect2Top = entity.positionData.values.y - entity.physicsData.values.size / 2;
+                const rect2Bottom = entity.positionData.values.y + entity.physicsData.values.size / 2;
+                if (rect1Left <= rect2Right &&
+                        rect1Right >= rect2Left &&
+                        rect1Top <= rect2Bottom &&
+                        rect1Bottom >= rect2Top) this.cachedCollisions.push(entity);
             } else if (this.physicsData.values.sides !== 2 && entity.physicsData.values.sides === 2) {
                 const dX = util.constrain(this.positionData.values.x, entity.positionData.values.x - entity.physicsData.values.size / 2, entity.positionData.values.x + entity.physicsData.values.size / 2) - this.positionData.values.x;
                 const dY = util.constrain(this.positionData.values.y, entity.positionData.values.y - entity.physicsData.values.width / 2, entity.positionData.values.y + entity.physicsData.values.width / 2) - this.positionData.values.y;

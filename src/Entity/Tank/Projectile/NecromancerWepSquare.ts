@@ -62,10 +62,12 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
     protected canControlDrones: boolean;
     public constructor(barrel: Barrel, tank: BarrelBase, tankDefinition: TankDefinition | null, shootAngle: number) {
         super(barrel, tank, tankDefinition, shootAngle);
+        this.tank.DroneCount += 1
 
         const bulletDefinition = barrel.definition.bullet;
 
         this.usePosAngle = true;
+        this.physicsData.values.size = 55 * Math.SQRT1_2;
         
         this.ai = new AI(this);
         this.ai.viewRange = 850 * tank.sizeFactor;
@@ -93,12 +95,12 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
 
         const skimmerBarrels: Barrel[] = this.skimmerBarrels =[];
         const SkimmerBarrelDefinition: BarrelDefinition = {
-            angle: Math.PI / 2,
+            angle: 0,
             offset: 0,
-            size: 75,
-            width: 40,
+            size: 70,
+            width: 37.8,
             delay: 0,
-            reload: 0.65,
+            reload: 1,
             recoil: 0,
             isTrapezoid: false,
             trapezoidDirection: 0,
@@ -106,7 +108,7 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
             bullet: {
                 type: "bullet",
                 health: 0.725,
-                damage: 0.3,
+                damage: 0.4,
                 speed: 1.2,
                 scatterRate: 1,
                 lifeLength: 0.25,
@@ -124,7 +126,7 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
             }
         }(this, {...SkimmerBarrelDefinition});
         const s2Definition = {...SkimmerBarrelDefinition};
-        s2Definition.angle += Math.PI
+        s2Definition.angle = Math.PI
         const s2 = new class extends Barrel {
             // Keep the width constant
             protected resize() {
@@ -134,7 +136,28 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
             }
         }(this, s2Definition);
 
-        skimmerBarrels.push(s1, s2);
+        const s3Definition = {...SkimmerBarrelDefinition};
+        s3Definition.angle = Math.PI/2
+        const s3 = new class extends Barrel {
+            // Keep the width constant
+            protected resize() {
+                super.resize();
+                this.physicsData.width = this.definition.width
+                this.physicsData.size = this.definition.size
+            }
+        }(this, s3Definition);
+
+        const s4Definition = {...SkimmerBarrelDefinition};
+        s4Definition.angle = -Math.PI/2
+        const s4 = new class extends Barrel {
+            // Keep the width constant
+            protected resize() {
+                super.resize();
+                this.physicsData.width = this.definition.width
+                this.physicsData.size = this.definition.size
+            }
+        }(this, s4Definition);
+        skimmerBarrels.push(s1, s2, s3, s4);
         this.invisibile = typeof this.barrelEntity.definition.invisibile === 'boolean' && this.barrelEntity.definition.invisibile;
         this.ai = new AI(this);
         this.ai.viewRange = 900;
@@ -168,7 +191,7 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
 
         this.ai.movementSpeed = this.ai.aimSpeed = this.baseAccel;
 
-        this.baseSpeed = 0;
+        this.baseSpeed /= 3;
     }
 
     /** Given a shape, it will create a necromancer square using stats from the shape */
@@ -184,6 +207,7 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
 
         wepsunchip.damagePerTick *= shapeDamagePerTick / 8;
         wepsunchip.healthData.values.maxHealth = (wepsunchip.healthData.values.health *= (shapeDamagePerTick / 8));
+        wepsunchip.baseSpeed = 0;
         return wepsunchip;
     }
 
@@ -243,7 +267,7 @@ export default class NecromancerWepSquare extends BulletAlt implements BarrelBas
         this.tickMixin(tick);
     }
     public destroy(animate=true) {
-        if (!animate) this.barrelEntity.droneCount -= 1;
+        if (!animate) this.tank.DroneCount -= 1;
 
         super.destroy(animate);
     }

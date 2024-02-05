@@ -30,19 +30,19 @@ const CHANGELOG = [
     "",
     "Major non tank changes",
     "",
-    "2 new bosses to fight being Fallen Puker and Protecter,",
+    "3 new bosses to fight,",
     "2 new Dominators,",
-    "2 elite bosses to hunt down being The Fortress and Pyromancer,",
+    "4 elite bosses to hunt down being The Castle, Pyromancer, H4XX0R, and, Mechanical Traveler",
     "And weaponized Polygons that have weapons to shoot at you with,",
     "",
     "Major tank changes",
     "",
-    "100+ new tanks to play with(some are based off of tanks fron arras and scenexe),",
+    "150+ new tanks to play with(some are based off of tanks fron arras and scenexe),",
     "Trapper is a tier 2 upgrade from tank,",
     "Single is a tier 2 upgrade from tank serving as a path to Destroyer instead of Machine Gun,",
     "Commander is a tier 2 upgrade from tank serving as a path to Overseer instead of Sniper,",
     "Sprayer is now a tier 3 upgrade,",
-    "Reworked Triple Shot, Penta Shot, Auto Trapper, Mega Trapper, and Factory's designs,",
+    "Reworked Triple Shot, and Factory's designs,",
     "Minions no longer rotate around the mouse,",
     "You have 35 stat points to play with,",
     "And many balance changes like Overlord having a delay to when the drones can spawn(it's still good though)",
@@ -262,7 +262,9 @@ const MOD_CONFIG = {
         "loadChangelog": 447,
         "loadTankDefinitions": 277,
         "getTankDefinition": 101,
-        "findCommand": 496
+        "findCommand": 496,
+        "decodeComponentList": 221,
+        "createEntityAtIndex": 114
     },
     "memory": {
         "gamemodeDisabledText": 16420,
@@ -281,24 +283,1555 @@ const MOD_CONFIG = {
 };
 
 const ADDON_MAP = {
-    "barrelAddons": {
-        "trapLauncher": 147
+    "trapLauncher": 147,
+    "auto3": 148,
+    "smasher": 149,
+    "pronounced": 150,
+    "landmine": 151,
+    "auto5": 153,
+    "autoturret": 154, // Auto Trapper (154) & Auto Gunner (152)
+    "autosmasher": 155,
+    "spike": 156,
+    "launcher": 157, // Skimmer (157) & Rocketeer (158)
+    "dombase": 159,
+    "dompronounced": 160 // Dom1 (160) & Dom2 (161) 
+};
+const CUSTOM_ADDONS = {
+    // This is a tutorial addon made for showcasing how custom addon renders are to be defined.
+    "tutorial": entity => {
+        // This if statement isnt totally necessary but might help your IDE recognize the type of "entity" which simplifies development later. It can be removed.
+        if(!(entity instanceof $Entity)) return;
+        
+        /*
+        We are currently on the root level meaning we can only access the "entity" the addon is placed upon. This means that "entity" is either a barrel or a tank.
+        It is possible to change its data even at the root level.
+
+        Each instance of "$Entity" has the following properties:
+        - positionData
+            -> Stores data about the entitie's position and angle, if the entity has a parent the x and y coordinates will be relative to the parents position.
+        - physicsData
+            -> Stores data about the entitie's collision properties (its size, sides, width, if it is a trapezoid).
+        - styleData
+            -> Stores data about how the entity is rendered, whether or not its visible, its color and so on.
+        - barrelData
+            -> This field is only defined if the entity actually is a barrel. It only has the shootingAngle property.
+        - parent
+            -> If this $Entity instance has been created via a createChild call, then this property stores a reference to its creator / parent. (ONLY DIRECT PARENT!)
+        - children
+            -> If this entity created children via createChild calls, then this property stores references to those children. (ONLY DIRECT CHILDREN!)
+        As well as the following methods:
+        - clone(source: $Entity)
+            -> Clones the sources position, physics, style and barrelData to the current entity.
+        - createChild(isBarrel: boolean)
+            -> Creates either a regular object entity or a barrel entity and sets its parent as this entity.
+        - defaults()
+            -> Sets the default values for position, physics, style and barrelData. Check out the default values in "./dma.js".
+        
+        Each of the "[...]Data" fields has similarly .clone(source: Self) and defaults() methods.
+        
+        You may not set the properties of $Entity manually. Instead use the "[...]Data" fields or .clone() / .defaults().
+        So don't do this: "someEntity.positionData = someOtherEntity.positionData;", but instead do this: "someEntity.positionData.clone(someOtherEntity.positionData);".
+        */
     },
-    "tankAddons": {
-        "auto3": 148,
-        "smasher": 149,
-        "pronounced": 150,
-        "landmine": 151,
-        "auto5": 153,
-        "autoturret": 154, // Auto Trapper (154) & Auto Gunner (152)
-        "autosmasher": 155,
-        "spike": 156,
-        "launcher": 157, // Skimmer (157) & Rocketeer (158)
-        "dombase": 159,
-        "dompronounced": 160, // Dom1 (160) & Dom2 (161) 
+    "boost": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+
+        socket.positionData.x = entity.physicsData.size * -0.5
+        socket.positionData.y = 0
+        socket.physicsData.size = entity.physicsData.size * 0.6;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 1;
+        socket.angle = 0
+        const socket2 = entity.createChild(false);
+        socket2.defaults();
+
+        socket2.positionData.x = entity.physicsData.size * -0.5
+        socket2.positionData.y = 0
+        socket2.physicsData.size = entity.physicsData.size * 0.4;
+        // Color.Barrel
+        socket2.sides = 1
+        socket2.styleData.showsAboveParent = true
+        socket2.styleData.color = 8;
+        socket2.angle = 0
+    },
+    "tele": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+
+        socket.positionData.x = entity.physicsData.size * -0.5
+        socket.positionData.y = 0
+        socket.physicsData.size = entity.physicsData.size * 0.6;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 1;
+        socket.angle = 0
+        const socket2 = entity.createChild(false);
+        socket2.defaults();
+
+        socket2.positionData.x = entity.physicsData.size * -0.5
+        socket2.positionData.y = 0
+        socket2.physicsData.size = entity.physicsData.size * 0.4;
+        // Color.Barrel
+        socket2.sides = 1
+        socket2.styleData.showsAboveParent = true
+        socket2.styleData.color = 24;
+        socket2.angle = 0
+    },
+    "bigautoturret": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.angle = Math.PI;
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25 * 1.5;
+        // Color.Barrel
+        socket.styleData.color = 1;
+        socket.styleData.showsAboveParent = true;
+
+        const barrel = socket.createChild(true);
+        barrel.defaults();
+        barrel.physicsData.size = 96;
+        barrel.physicsData.sides = 2;
+        barrel.physicsData.width = 0.7 * 75.6;
+        // angle + shootingAngle
+        barrel.positionData.angle = 0;
+        // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+        barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+        // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+        barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+        // Color.Barrel
+        barrel.styleData.color = 1;
+    },
+    "auto2": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.angle = Math.PI;
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25;
+        // Color.Barrel
+        socket.styleData.color = 1;
+        socket.styleData.showsAboveParent = true;
+
+        const barrel = socket.createChild(true);
+        barrel.defaults();
+        barrel.physicsData.size = 55;
+        barrel.physicsData.sides = 2;
+        barrel.physicsData.width = 0.7 * 42;
+        barrel.physicsData.isTrapezoid = true
+        // angle + shootingAngle
+        barrel.positionData.angle = 0;
+        // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+        barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+        // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+        barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+        // Color.Barrel
+        barrel.styleData.color = 1;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = Math.PI/2;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 2;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 55;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 42;
+            barrel.physicsData.isTrapezoid = true
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "mega3": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 3;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25 * 1.25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 65;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 *  71.4;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "stalker3": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 3;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25 * 1.1;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 65;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 42;
+            barrel.physicsData.isTrapezoid = true
+            // angle + shootingAngle
+            barrel.positionData.angle = 0 + Math.PI;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "joint3": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 3;
+        for(let i = 0; i < count; ++i) {
+            
+            const socket2 = rotator.createChild(false);
+            socket2.defaults();
+
+            socket2.physicsData.size = 100;
+            socket2.physicsData.sides = 2;
+            socket2.physicsData.width = 25.2;
+            socket2.positionData.angle = i * Math.PI * 2 / count;
+            socket2.positionData.x = Math.cos(socket2.positionData.angle) * 50;
+            socket2.positionData.y = Math.sin(socket2.positionData.angle) * 50;
+            socket2.styleData.color = 1;
+        }
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 90;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 90;
+            socket.physicsData.size = 25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 55;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "auto4": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 4;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25 * 1.125;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 40;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 56.7;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+            const rect1 = barrel.createChild(false);
+            rect1.defaults();
+            rect1.styleData.color = 1;
+            rect1.physicsData.sides = 2;
+            rect1.physicsData.isTrapezoid = true
+            rect1.physicsData.width = barrel.physicsData.width;
+            rect1.physicsData.size = barrel.physicsData.width * (20 / 42);
+            rect1.positionData.x = (barrel.physicsData.size + rect1.physicsData.size) / 2;
+        }
+    },
+    "droneturret": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = Math.PI;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 3;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 55;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "autoauto3": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 3;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 60;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 56.7;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+            const rect1 = barrel.createChild(false);
+            rect1.defaults();
+            rect1.styleData.color = 1;
+            rect1.physicsData.sides = 1;
+            rect1.physicsData.width =  barrel.physicsData.width * (25 / 50);
+            rect1.physicsData.size = barrel.physicsData.width * (25 / 50);
+            rect1.positionData.x = (barrel.physicsData.size - rect1.physicsData.size) / 1.5;;
+        }
+    },
+    "cuck": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.size = 5;
+        rotator.positionData.angle = Math.PI;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = false;
+
+        const count = 1;
+        for(let i = 0; i < count; ++i) {
+            const socket = rotator.createChild(false);
+            socket.defaults();
+            
+            socket.positionData.angle = i * Math.PI * 2 / count;
+            socket.positionData.x = Math.cos(socket.positionData.angle) * 40;
+            socket.positionData.y = Math.sin(socket.positionData.angle) * 40;
+            socket.physicsData.size = 25;
+            // Color.Barrel
+            socket.styleData.color = 1;
+
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 55;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.7 * 42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "megasmasher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 6
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = 50 * 1.3 * Math.SQRT1_2;
+    },
+    "overdrive": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 4
+        rotator.positionData.angle = 0;
+        rotator.styleData.color = 1
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.physicsData.size = 50 * 0.55 * Math.SQRT1_2;
+    },
+    "microsmasher": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 25 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 6
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (25* Math.SQRT2) * 1.15 * Math.SQRT1_2;
+    },
+    "multibox": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 37.5
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.styleData.color = entity.styleData.color;
+        rotator.physicsData.size = 37.5 * 0.5;
+        const count = 2;
+        for(let i = 0; i < count; ++i) {
+            const mb1 = entity.createChild(false);
+            mb1.defaults();
+            mb1.positionData.x = Math.cos(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.positionData.y = Math.sin(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.physicsData.sides = 1
+            mb1.positionData.angle = 0;
+            mb1.positionData.isAngleAbsolute = true;
+            mb1.styleData.isVisible = true;
+            mb1.styleData.color = entity.styleData.color;
+            mb1.physicsData.size = 37.5;
+            const barrel = mb1.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 95 * 0.75;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.75 *  42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "tool": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 37.5
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.styleData.color = entity.styleData.color;
+        rotator.physicsData.size = 37.5 * 0.5;
+        const count = 2;
+        for(let i = 0; i < count; ++i) {
+            const mb1 = entity.createChild(false);
+            mb1.defaults();
+            mb1.positionData.x = Math.cos(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.positionData.y = Math.sin(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.physicsData.sides = 1
+            mb1.positionData.angle = 0;
+            mb1.positionData.isAngleAbsolute = true;
+            mb1.styleData.isVisible = true;
+            mb1.styleData.color = entity.styleData.color;
+            mb1.physicsData.size = 37.5;
+            if(i == 0){
+            const b1 = mb1.createChild(true);
+            b1.defaults();
+            b1.physicsData.size = 70 * 0.75;
+            b1.physicsData.sides = 2;
+            b1.physicsData.width = 0.75 *  42;
+            b1.physicsData.isTrapezoid = true
+            // angle + shootingAngle
+            b1.positionData.angle = -Math.PI/2;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            b1.positionData.x = Math.cos(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) - Math.sin(b1.positionData.angle) * 6;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            b1.positionData.y = Math.sin(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) + Math.cos(b1.positionData.angle) * 6;
+            // Color.Barrel
+            b1.styleData.color = 1;
+
+            const b2 = mb1.createChild(true);
+            b2.defaults();
+            b2.physicsData.size = 70 * 0.75;
+            b2.physicsData.sides = 2;
+            b2.physicsData.width = 0.75 * 42;
+            // angle + shootingAngle
+            b2.physicsData.isTrapezoid = true
+
+            b2.positionData.angle = Math.PI/2;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            b2.positionData.x = Math.cos(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) - Math.sin(b2.positionData.angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            b2.positionData.y = Math.sin(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) + Math.cos(b2.positionData.angle) * 0;
+            // Color.Barrel
+            b2.styleData.color = 1;
+            }else{
+                const b1 = mb1.createChild(true);
+                b1.defaults();
+                b1.physicsData.size = 60 * 0.75;
+                b1.physicsData.sides = 2;
+                b1.physicsData.width = 0.75 *  42;
+
+                // angle + shootingAngle
+                b1.positionData.angle = 0;
+                // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+                b1.positionData.x = Math.cos(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) - Math.sin(b1.positionData.angle) * 6;
+                // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+                b1.positionData.y = Math.sin(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) + Math.cos(b1.positionData.angle) * 6;
+                // Color.Barrel
+                b1.styleData.color = 1;
+    
+                const rect1 = b1.createChild(false);
+                rect1.defaults();
+                rect1.styleData.color = 1;
+                rect1.physicsData.sides = 2;
+                rect1.physicsData.isTrapezoid = true
+                rect1.physicsData.width = b1.physicsData.width;
+                rect1.physicsData.size = b1.physicsData.width * (20 / 42);
+                rect1.positionData.x = (b1.physicsData.size + rect1.physicsData.size) / 2;
+
+                const b2 = mb1.createChild(true);
+                b2.defaults();
+                b2.physicsData.size = 60 * 0.75;
+                b2.physicsData.sides = 2;
+                b2.physicsData.width = 0.75 * 42;
+                // angle + shootingAngle
+    
+                b2.positionData.angle = Math.PI;
+                // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+                b2.positionData.x = Math.cos(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) - Math.sin(b2.positionData.angle) * 0;
+                // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+                b2.positionData.y = Math.sin(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) + Math.cos(b2.positionData.angle) * 0;
+                // Color.Barrel
+                b2.styleData.color = 1;
+                const rect2 = b2.createChild(false);
+                rect2.defaults();
+                rect2.styleData.color = 1;
+                rect2.physicsData.sides = 2;
+                rect2.physicsData.isTrapezoid = true
+                rect2.physicsData.width = b2.physicsData.width;
+                rect2.physicsData.size = b2.physicsData.width * (20 / 42);
+                rect2.positionData.x = (b2.physicsData.size + rect2.physicsData.size) / 2;
+            }
+        }
+    },
+    "bentbox": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 37.5
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.styleData.color = entity.styleData.color;
+        rotator.physicsData.size = 37.5 * 0.5;
+        const count = 2;
+        for(let i = 0; i < count; ++i) {
+            const mb1 = entity.createChild(false);
+            mb1.defaults();
+            mb1.positionData.x = Math.cos(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.positionData.y = Math.sin(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.physicsData.sides = 1
+            mb1.positionData.angle = 0;
+            mb1.positionData.isAngleAbsolute = true;
+            mb1.styleData.isVisible = true;
+            mb1.styleData.color = entity.styleData.color;
+            mb1.physicsData.size = 37.5;
+
+            const b1 = mb1.createChild(true);
+            b1.defaults();
+            b1.physicsData.size = 95 * 0.75;
+            b1.physicsData.sides = 2;
+            b1.physicsData.width = 0.75 * 42;
+            // angle + shootingAngle
+            b1.positionData.angle = Math.PI/2;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            b1.positionData.x = Math.cos(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) - Math.sin(b1.positionData.angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            b1.positionData.y = Math.sin(b1.positionData.angle) * (b1.physicsData.size / 2 + 0) + Math.cos(b1.positionData.angle) * 0;
+            // Color.Barrel
+            b1.styleData.color = 1;
+
+            const b2 = mb1.createChild(true);
+            b2.defaults();
+            b2.physicsData.size = 95 * 0.75;
+            b2.physicsData.sides = 2;
+            b2.physicsData.width = 0.75 * 42;
+            // angle + shootingAngle
+            b2.positionData.angle = -Math.PI/2;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            b2.positionData.x = Math.cos(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) - Math.sin(b2.positionData.angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            b2.positionData.y = Math.sin(b2.positionData.angle) * (b2.physicsData.size / 2 + 0) + Math.cos(b2.positionData.angle) * 0;
+            // Color.Barrel
+            b2.styleData.color = 1;
+
+            const barrel = mb1.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 95 * 0.75;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.75 *  42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0)  - Math.sin(barrel.positionData.angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) + Math.cos(barrel.positionData.angle) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+
+            const barrel2 = mb1.createChild(true);
+            barrel2.defaults();
+            barrel2.physicsData.size = 95 * 0.75;
+            barrel2.physicsData.sides = 2;
+            barrel2.physicsData.width = 0.75 *  42;
+            // angle + shootingAngle
+            barrel2.positionData.angle = Math.PI;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel2.positionData.x = Math.cos(barrel2.positionData.angle) * (barrel2.physicsData.size / 2 + 0)  - Math.sin(barrel2.positionData.angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel2.positionData.y = Math.sin(barrel2.positionData.angle) * (barrel2.physicsData.size / 2 + 0) + Math.cos(barrel2.positionData.angle) * 0;
+            // Color.Barrel
+            barrel2.styleData.color = 1;
+        }
+    },
+    "multiboxxer": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 37.5
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.styleData.color = entity.styleData.color;
+        rotator.physicsData.size = 37.5 * 0.5;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 1
+        rotator2.positionData.angle = 0;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.styleData.showsAboveParent = true
+        rotator2.styleData.color = entity.styleData.color;
+        rotator2.physicsData.size = 37.5 * 0.25;
+
+        const count = 4;
+        for(let i = 0; i < count; ++i) {
+            const mb1 = entity.createChild(false);
+            mb1.defaults();
+            mb1.positionData.x = Math.cos(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.positionData.y = Math.sin(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.physicsData.sides = 1
+            mb1.positionData.angle = 0;
+            mb1.positionData.isAngleAbsolute = true;
+            mb1.styleData.isVisible = true;
+            mb1.styleData.color = entity.styleData.color;
+            mb1.physicsData.size = 37.5;
+            const barrel = mb1.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 95 * 0.75;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.75 *  42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "bees": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.size = 25
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.styleData.color = entity.styleData.color;
+        rotator.physicsData.size = 25 * 0.5;
+
+        const count = 24;
+        for(let i = 0; i < count; ++i) {
+            const mb1 = entity.createChild(false);
+            mb1.defaults();
+            mb1.positionData.x = Math.cos(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.positionData.y = Math.sin(Math.PI/(count) + (i * Math.PI * 2 / count)) * 80;
+            mb1.physicsData.sides = 1
+            mb1.positionData.angle = 0;
+            mb1.positionData.isAngleAbsolute = true;
+            mb1.styleData.isVisible = true;
+            mb1.styleData.color = entity.styleData.color;
+            mb1.physicsData.size = 12.5;
+            const barrel = mb1.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 95 * 0.25;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 0.25 *  42;
+            // angle + shootingAngle
+            barrel.positionData.angle = 0;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "chainer": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 6
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (50 * 1.15 * Math.SQRT1_2) * 1.25
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 1
+        rotator2.positionData.angle = 0;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.styleData.color = 1
+        rotator2.physicsData.size = 50 * 1.25;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 6
+        rotator3.positionData.angle = 0;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = 50 * 1.15 * Math.SQRT1_2;
+    },
+    "rammer": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 6
+        rotator.positionData.angle = Math.PI;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = 50 * 1.15 * Math.SQRT1_2;
+    },
+    "bumper": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = 50 * 1.75 * Math.SQRT1_2;
+    },
+    "whirlwind": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 1
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.color = 1
+        rotator.physicsData.size = 50 * 1.75 * Math.SQRT1_2;
+    },
+    "saw": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 4
+        rotator.positionData.angle =  Math.PI/8;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = 50 * 1.5 * Math.SQRT1_2;
+    },
+    "vampsmasher": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 26;
+        socket.angle = 0
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 3
+        rotator2.positionData.angle = Math.PI/6;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.color = 26;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = 50 * 1.45 * Math.SQRT1_2;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 3
+        rotator3.positionData.angle = -Math.PI/6;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.color = 26;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = 50 * 1.45 * Math.SQRT1_2;
+
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 6
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = 50 * 1.15 * Math.SQRT1_2;
+
+    },
+    "vampire": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 26;
+        socket.angle = 0
+    },
+    "spinner": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 50 * 0.8 * Math.SQRT1_2;;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 1;
+        socket.angle = 0
+        const count = 6;
+        for(let i = 0; i < count; ++i) {
+            const angle = i * Math.PI * 2 / count
+            const barrel = socket.createChild(true);
+            barrel.defaults();
+            barrel.physicsData.size = 55;
+            barrel.physicsData.sides = 2;
+            barrel.physicsData.width = 25.2;
+            // angle + shootingAngle
+            barrel.positionData.angle = angle;
+            // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+            barrel.positionData.x = Math.cos(angle) * (barrel.physicsData.size / 2 + 0) - Math.sin(angle) * 0;
+            // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+            barrel.positionData.y = Math.sin(angle) * (barrel.physicsData.size / 2 + 0) - Math.cos(angle) * 0;
+            // Color.Barrel
+            barrel.styleData.color = 1;
+        }
+    },
+    "psiEye": entity => {
+        if(!(entity instanceof $Entity)) return;
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25;
+        // Color.Barrel
+        socket.sides = 1
+        socket.styleData.showsAboveParent = true
+        socket.styleData.color = 21;
+        socket.angle = 0
+    },
+    "autovamp": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const socket = entity.createChild(false);
+        socket.defaults();
+        
+        socket.positionData.angle = Math.PI;
+        socket.positionData.x = 0
+        socket.positionData.y = 0
+        socket.physicsData.size = 25;
+        // Color.Barrel
+        socket.styleData.color = 1;
+        socket.styleData.showsAboveParent = true;
+
+        const barrel = socket.createChild(true);
+        barrel.defaults();
+        barrel.physicsData.size = 60;
+        barrel.physicsData.sides = 2;
+        barrel.physicsData.width = 0.7 * 21;
+        barrel.positionData.angle = 0;
+        // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+        barrel.positionData.x = Math.cos(0) * (barrel.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+        // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+        barrel.positionData.y = Math.sin(0) * (barrel.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+        // Color.Barrel
+        barrel.styleData.color = 1;
+
+        const barrel2 = socket.createChild(true);
+        barrel2.defaults();
+        barrel2.physicsData.size = 40;
+        barrel2.physicsData.sides = 2;
+        barrel2.physicsData.width = 0.7 * 42
+        barrel2.positionData.angle = 0;
+        // Math.cos(angle) * (size / 2 + distance) - Math.sin(angle) * offset
+        barrel2.positionData.x = Math.cos(0) * (barrel2.physicsData.size / 2 + 0) - Math.sin(0) * 0;
+        // Math.sin(angle) * (size / 2 + distance) - Math.cos(angle) * offset
+        barrel2.positionData.y = Math.sin(0) * (barrel2.physicsData.size / 2 + 0) - Math.cos(0) * 0;
+        // Color.Barrel
+        barrel2.styleData.color = 1;
+
+        const socket2 = entity.createChild(false);
+        socket2.defaults();
+        
+        socket2.positionData.x = 0
+        socket2.positionData.y = 0
+        socket2.physicsData.size = 12.5;
+        // Color.Barrel
+        socket2.sides = 1
+        socket2.styleData.showsAboveParent = true
+        socket2.styleData.color = 26;
+        socket2.angle = 0
+
+
+    },
+    "minionLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.styleData.showsAboveParent = true;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.25;
+        rect1.physicsData.size = entity.physicsData.size * (10 / 50);
+        rect1.positionData.x = (entity.physicsData.size - rect1.physicsData.size) / 2;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 1.25;
+        rect2.physicsData.size = entity.physicsData.size * (35 / 50);
+        rect2.positionData.x = (-entity.physicsData.size + rect2.physicsData.size) / 2;
+    },
+    "engitrapLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.isTrapezoid = true
+        rect1.physicsData.width = entity.physicsData.width;
+        rect1.styleData.showsAboveParent = true
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size - rect1.physicsData.size) / 2;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 1.75;
+        rect2.physicsData.size = entity.physicsData.width * (10 / 50);
+        rect2.positionData.x = (entity.physicsData.size + rect2.physicsData.size) / 2;
+    },
+    "blockLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.isTrapezoid = true
+        rect1.physicsData.width = entity.physicsData.width/1.75 * 1.27273;
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2.75;
+    },
+    "swarmLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.5;
+        rect1.styleData.showsAboveParent = true
+        rect1.physicsData.size = entity.physicsData.size * (10 / 50);
+        rect1.positionData.x = (entity.physicsData.size - rect1.physicsData.size) / 2 * -1
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 1.75;
+        rect2.physicsData.size = 105 * (30 / 50);
+        rect2.physicsData.isTrapezoid = true
+        rect2.positionData.x = (entity.physicsData.size - rect2.physicsData.size) / 2;
+    },
+    "machineTrapLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.isTrapezoid = true
+        rect1.physicsData.width = entity.physicsData.width * 1.75;
+        rect1.physicsData.size = entity.physicsData.width * (25 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+    },
+    "engimachinetrapLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.isTrapezoid = true
+        rect1.physicsData.width = entity.physicsData.width * 1.75;
+        rect1.styleData.showsAboveParent = true
+        rect1.physicsData.size = entity.physicsData.width * (28 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 3.0625 ;
+        rect2.physicsData.size = entity.physicsData.width * (13 / 50);
+        rect2.positionData.x = (entity.physicsData.size + rect2.physicsData.size)  - (10 * (28 / 42));
+    },
+    "mineLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.75;
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+    },
+    "stickyLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.5;
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 1.25;
+        rect2.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect2.positionData.x = (entity.physicsData.size - rect2.physicsData.size) / 2;
+
+    },
+    "machineMineLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width *  2.625;
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+    },
+    "reversetrap": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.isTrapezoid = true
+        rect1.physicsData.width = entity.physicsData.width;
+        rect1.styleData.showsAboveParent = true
+        rect1.positionData.angle = Math.PI;
+
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (-entity.physicsData.size - rect1.physicsData.size) / 2;
+
+    },
+    "growLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.2;
+        rect1.styleData.showsAboveParent = true
+        rect1.physicsData.size = entity.physicsData.width * (27 / 42);
+        rect1.positionData.x = (entity.physicsData.size/1.25 - rect1.physicsData.size) / 2;
+
+    },
+    "bounceLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 1.5;
+        rect1.styleData.showsAboveParent = true
+        rect1.physicsData.size = entity.physicsData.width * (20 / 42);
+        rect1.positionData.x = (entity.physicsData.size + rect1.physicsData.size) / 2;
+
+    },
+    "NecLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.styleData.showsAboveParent = true;
+        rect1.physicsData.sides = 2;
+        rect1.physicsData.width = entity.physicsData.width * 2;
+        rect1.physicsData.size = entity.physicsData.size * (10 / 50);
+        rect1.positionData.x = (entity.physicsData.size - rect1.physicsData.size) / 2;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.styleData.showsAboveParent = true;
+        rect2.physicsData.sides = 2;
+        rect2.physicsData.width = entity.physicsData.width * 2;
+        rect2.physicsData.size = entity.physicsData.size * (20 / 50);
+        rect2.positionData.x = 0;
+    },
+    "autoLauncher": entity => {
+        if(!(entity instanceof $Entity)) return;
+
+
+        const rect1 = entity.createChild(false);
+        rect1.defaults();
+        rect1.styleData.color = 1;
+        rect1.physicsData.sides = 1;
+        rect1.physicsData.width =  entity.physicsData.width * (25 / 50);
+        rect1.physicsData.size = entity.physicsData.width * (25 / 50);
+        rect1.positionData.x = (entity.physicsData.size - rect1.physicsData.size) / 1.5;
+
+        const rect2 = entity.createChild(false);
+        rect2.defaults();
+        rect2.styleData.color = 1;
+        rect2.physicsData.sides = 1;
+        rect2.physicsData.width =  entity.physicsData.width * (25 / 50);
+        rect2.physicsData.size = entity.physicsData.width * (25 / 50);
+        rect2.positionData.x = (-entity.physicsData.size + rect2.physicsData.size) / 1.5;
+
+    },
+    "triangle": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+    },
+    "cele": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+    },
+    "celeoverdrive": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 4
+        rotator.positionData.angle = 0;
+        rotator.styleData.color = 1
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.styleData.showsAboveParent = true
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 0.55 * Math.SQRT1_2;
+    },
+    "chasm": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 3
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 1.2;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 3
+        rotator2.positionData.angle = 0;
+        rotator2.styleData.color =  entity.styleData.color;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = (47.5 * Math.SQRT2) * 0.75;
+        rotator2.styleData.showsAboveParent = true;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 3
+        rotator3.positionData.angle = 0;
+        rotator3.styleData.color =  entity.styleData.color;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = (47.5 * Math.SQRT2) * 0.5;
+        rotator3.styleData.showsAboveParent = true;
+
+    },
+    "void": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 3
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 1.4;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 3
+        rotator2.positionData.angle = 0;
+        rotator2.styleData.color =  entity.styleData.color;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = (47.5 * Math.SQRT2) * 0.75;
+        rotator2.styleData.showsAboveParent = true;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 3
+        rotator3.positionData.angle = 0;
+        rotator3.styleData.color =  entity.styleData.color;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = (47.5 * Math.SQRT2) * 0.5;
+        rotator3.styleData.showsAboveParent = true;
+
+    },
+    "comet": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 3
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 1.2;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 3
+        rotator2.styleData.isStar = true;
+        rotator2.positionData.angle = Math.PI;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = (47.5 * Math.SQRT2) * 0.8;
+        rotator2.styleData.showsAboveParent = true;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 3
+        rotator3.positionData.angle = 0;
+        rotator3.styleData.color =  entity.styleData.color;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = (47.5 * Math.SQRT2) * 0.5;
+        rotator3.styleData.showsAboveParent = true;
+
+    },
+    "abyss": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 3
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 1.2;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 3
+        rotator2.positionData.angle = 0;
+        rotator2.styleData.color =  entity.styleData.color;
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = (47.5 * Math.SQRT2) * 0.8;
+        rotator2.styleData.showsAboveParent = true;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 3
+        rotator3.positionData.angle = 0;
+        rotator3.styleData.color =  entity.styleData.color;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = (47.5 * Math.SQRT2) * 0.6;
+        rotator3.styleData.showsAboveParent = true;
+
+        const rotator4 = entity.createChild(false);
+        rotator4.defaults();
+        rotator4.physicsData.sides = 3
+        rotator4.positionData.angle = 0;
+        rotator4.styleData.color =  entity.styleData.color;
+        rotator4.positionData.isAngleAbsolute = true;
+        rotator4.styleData.isVisible = true;
+        rotator4.physicsData.size = (47.5 * Math.SQRT2) * 0.4;
+        rotator4.styleData.showsAboveParent = true;
+
+        const rotator5 = entity.createChild(false);
+        rotator5.defaults();
+        rotator5.physicsData.sides = 3
+        rotator5.positionData.angle = 0;
+        rotator5.styleData.color =  entity.styleData.color;
+        rotator5.positionData.isAngleAbsolute = true;
+        rotator5.styleData.isVisible = true;
+        rotator5.physicsData.size = (47.5 * Math.SQRT2) * 0.2;
+        rotator5.styleData.showsAboveParent = true;
+
+    },
+    "rift": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 3
+        entity.physicsData.size = 47.5 * Math.SQRT2
+        const rotator = entity.createChild(false);
+        rotator.defaults();
+        rotator.physicsData.sides = 3
+        rotator.positionData.angle = 0;
+        rotator.positionData.isAngleAbsolute = true;
+        rotator.styleData.isVisible = true;
+        rotator.physicsData.size = (47.5 * Math.SQRT2) * 1.2;
+
+        const rotator2 = entity.createChild(false);
+        rotator2.defaults();
+        rotator2.physicsData.sides = 6
+        rotator2.positionData.angle = Math.PI;
+        rotator2.styleData.color = 1
+        rotator2.positionData.isAngleAbsolute = true;
+        rotator2.styleData.isVisible = true;
+        rotator2.physicsData.size = (47.5 * Math.SQRT2) * 0.75;
+        rotator2.styleData.showsAboveParent = true;
+
+        const rotator3 = entity.createChild(false);
+        rotator3.defaults();
+        rotator3.physicsData.sides = 6
+        rotator3.positionData.angle = Math.PI;
+        rotator3.styleData.color =  24;
+        rotator3.positionData.isAngleAbsolute = true;
+        rotator3.styleData.isVisible = true;
+        rotator3.physicsData.size = (47.5 * Math.SQRT2) * 0.5;
+        rotator3.styleData.showsAboveParent = true;
+
+    },
+    "pentagon": entity => {
+        if(!(entity instanceof $Entity)) return;
+        entity.physicsData.sides = 5
+    }
+}
+const FIELD_OFFSETS = {
+    basic: {
+        owner: 20,
+        parent: 32
+    },
+    position: {
+        y: 8,
+        x: 40,
+        angle: 72,
+        flags: 104
+    },
+    collidable: {
+        size: 16,
+        sides: 48,
+        width: 64,
+        flags: 104
+    },
+    renderable: {
+        color: 12,
+        flags: 20,
+        borderWidth: 32,
+        opacity: 64
+    },
+    cannon: {
+        shootingAngle: 8
     }
 };
 
+const FLAGS = {
+    absoluteRotation: 1 << 0,
+    isTrapezoid: 1 << 0,
+    isVisible: 1 << 0,
+    renderFirst: 1 << 3,
+    isStar: 1 << 4,
+    isCachable: 1 << 5,
+    showsAboveParent: 1 << 6
+};
 const CUSTOM_COMMANDS = [
     {
         "id": "util_test",

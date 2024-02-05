@@ -19,12 +19,14 @@
 import Barrel from "../Barrel";
 import Bullet from "./Bullet";
 
-import { InputFlags, Stat, Tank } from "../../../Const/Enums";
+import { InputFlags, PhysicsFlags, PositionFlags, Stat, Tank } from "../../../Const/Enums";
 import { BarrelDefinition, TankDefinition } from "../../../Const/TankDefinitions";
 import { Entity } from "../../../Native/Entity";
 import { Inputs } from "../../AI";
-import { BarrelBase } from "../TankBody";
+import TankBody, { BarrelBase } from "../TankBody";
 import { GuardObject } from "../Addons";
+import MazeWall from "../../Misc/MazeWall";
+import AbstractShape from "../../Shape/AbstractShape";
 /**
  * Barrel definition for the rocketeer rocket's barrel.
  */
@@ -39,6 +41,7 @@ export default class Blunt extends Bullet implements BarrelBase{
     public cameraEntity: Entity;
     /** The reload time of the skimmer's barrel. */
     public reloadTime = 15;
+    public deff: boolean
     /** The inputs for when to shoot or not. (croc skimmer) */
     public inputs: Inputs;
     protected megaturret: boolean;
@@ -47,23 +50,35 @@ export default class Blunt extends Bullet implements BarrelBase{
         this.cameraEntity = tank.cameraEntity;
         this.inputs = new Inputs()
         this.sizeFactor = this.physicsData.values.size / 50;
-        
+        this.deff = false
         const bulletDefinition = barrel.definition.bullet;
         const statLevels = tank.cameraEntity.cameraData?.values.statLevels.values;
         const bulletDamage = statLevels ? statLevels[Stat.BulletDamage] : 0;
-
+        if (this.tankDefinition && this.tankDefinition.id == Tank.FunEnder){
+        
+            this.baseSpeed *= 2
+            this.baseAccel /= 2
+            this.physicsData.size *= 1 + ((0.5 * Math.random()) -0.25)
+            this.baseSpeed *= 1 + ((0.4 * Math.random()) -0.2)
+            this.baseAccel *= 1 + ((0.5 * Math.random()) -0.25)
+        }
+    
         this.megaturret = typeof this.barrelEntity.definition.megaturret === 'boolean' && this.barrelEntity.definition.megaturret;
         if (tankDefinition && tankDefinition.id === Tank.Pounder){
             new GuardObject(this.game, this, 6, 1.3, 0, .1);
-            this.physicsData.values.pushFactor = ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 6;
+            this.physicsData.values.pushFactor = ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 3;
         }else        if (tankDefinition && tankDefinition.id === Tank.Flinger){
+            this.positionData.flags = PositionFlags.canMoveThroughWalls
+            this.deff = true
             new GuardObject(this.game, this, 1, 1.75, 0, .1);
             //this.baseAccel = (35 * 3) * this.barrelEntity.definition.bullet.speed;
-            this.addAcceleration(this.movementAngle, this.baseSpeed * 2);
-            this.physicsData.values.pushFactor = ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 9;
+            this.physicsData.values.pushFactor = ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 3.5;
+        }else        if (tankDefinition && tankDefinition.id === Tank.FunEnder){
+            new GuardObject(this.game, this, 6, 1.15, 0, .1);
+            this.physicsData.values.pushFactor = ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 3;
         }else{
             new GuardObject(this.game, this, 6, 1.15, 0, .1);
-            this.physicsData.values.pushFactor =  ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 3;
+            this.physicsData.values.pushFactor =  ((7 / 3) + bulletDamage) * bulletDefinition.damage  * 2;
         }
     }
     
@@ -71,5 +86,28 @@ export default class Blunt extends Bullet implements BarrelBase{
         this.sizeFactor = this.physicsData.values.size / 50;
         this.reloadTime = this.tank.reloadTime;
         super.tick(tick);
+        if (this.tankDefinition && this.tankDefinition.id == Tank.FunEnder){
+            if (tick <= this.spawnTick + 5){
+            }else{
+                const bulletDefinition = this.barrelEntity.definition.bullet;
+                const statLevels = this.tank.cameraEntity.cameraData?.values.statLevels.values;
+                const bulletDamage = statLevels ? statLevels[Stat.BulletDamage] : 0;
+                const falloff = ((7 + bulletDamage * 3) * bulletDefinition.damage)/2;
+                this.damagePerTick = falloff   
+            }
+        }
+    if (this.deff){
+        if (this.isPhysical && !(this.deletionAnimation)) {
+            const collidedEntities = this.findCollisions();
+            for (let i = 0; i < collidedEntities.length; ++i) {
+                if (collidedEntities[i] instanceof TankBody || collidedEntities[i] instanceof AbstractShape || collidedEntities[i] instanceof MazeWall){
+                    this.velocity.angle >= Math.PI/2? this.velocity.angle = Math.atan2(collidedEntities[i].positionData.y - this.positionData.y, collidedEntities[i].positionData.x - this.positionData.x) +  -Math.PI 
+                    : this.velocity.angle = Math.atan2(collidedEntities[i].positionData.y - this.positionData.y, collidedEntities[i].positionData.x - this.positionData.x) + Math.PI
+                    this.movementAngle = this.velocity.angle
+                    this.baseSpeed *= 1.5
+                }
+            }
+        }
+    }
     }
 }
